@@ -220,8 +220,7 @@ require_once '../includes/sidebar.php';
                         <thead class="table-light">
                             <tr>
                                 <th class="px-4">Utilisateur</th>
-                                <th></th>
-                                <th>Rôle</th>
+                                <th>Identifiant</th>
                                 <th>Emprunts</th>
                                 <th>Statut</th>
                                 <th>Date inscription</th>
@@ -242,21 +241,13 @@ require_once '../includes/sidebar.php';
                                                 </div>
                                                 <div>
                                                     <div class="fw-medium"><?php echo htmlspecialchars($user['user_nom']); ?></div>
-                                                    <div class="small text-muted"><?php echo htmlspecialchars($user['user_login']); ?></div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="text-muted">
-                                            <?php echo htmlspecialchars($user['user_login']); ?>
+                                            <?php echo htmlspecialchars($user['nom_role']); ?>
                                         </td>
-                                        <td>
-                                            <?php
-                                            $roleClass = $user['user_role_id'] == 1 ? 'bg-info' : 'bg-secondary';
-                                            ?>
-                                            <span class="badge <?php echo $roleClass; ?> bg-opacity-10 text-<?php echo str_replace('bg-', '', $roleClass); ?> rounded-pill px-3">
-                                            <?php echo htmlspecialchars($user['nom_role'] ?? ''); ?>
-                                            </span>
-                                        </td>
+
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
                                                 <span class="badge bg-primary rounded-pill">
@@ -423,8 +414,8 @@ require_once '../includes/sidebar.php';
                         <label class="form-label small fw-medium text-gray-800">Rôle</label>
                         <select class="form-select form-select-lg" name="role" id="editRole" required>
                             <?php foreach ($roles as $r): ?>
-                                <option value="<?php echo $r['role_id']; ?>">
-                                    <?php echo htmlspecialchars($r['role_name']); ?>
+                                <option value="<?php echo $r['id_role']; ?>">
+                                    <?php echo htmlspecialchars($r['nom_role']); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

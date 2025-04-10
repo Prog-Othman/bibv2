@@ -17,6 +17,39 @@ if ($_SESSION['user']['user_role_id'] != 1) {
 // Connexion à la base de données
 $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
 
+// Traitement de l'ajout d'un nouveau livre
+if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // Vérifier que tous les champs requis sont présents
+        if (!isset($_POST['titre']) || !isset($_POST['auteur']) || !isset($_POST['isbn']) || !isset($_POST['categorie'])) {
+            throw new Exception("Tous les champs sont requis");
+        }
+
+        // Insérer le nouveau livre
+        $insertQuery = "INSERT INTO n_livre (titre, auteur, isbn, id_categorie) 
+                       VALUES (?, ?, ?, ?)";
+        $insertStmt = $db->prepare($insertQuery);
+        $result = $insertStmt->execute([
+            $_POST['titre'],
+            $_POST['auteur'],
+            $_POST['isbn'],
+            $_POST['categorie']
+        ]);
+
+        // Vérifier le résultat de l'insertion
+        if (!$result) {
+            throw new Exception("Erreur lors de l'ajout du livre");
+        }
+
+        // Rediriger vers la même page pour voir le nouveau livre
+        header('Location: books.php');
+        exit();
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+        error_log("Error adding book: " . $error);
+    }
+}
+
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
@@ -251,6 +284,10 @@ require_once '../includes/sidebar.php';
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">ISBN</label>
                         <input type="text" class="form-control form-control-lg" name="isbn" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-gray-800">Mots-clés</label>
+                        <input type="text" class="form-control form-control-lg" name="mots_cles" placeholder="Séparez les mots-clés par des virgules">
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Catégorie</label>

@@ -37,7 +37,7 @@ $stmt = $db->prepare($query);
 $stmt->execute($params);
 $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Get categories from database
-$categoryQuery = "SELECT category_id, category_name FROM n_category ORDER BY category_name";
+$categoryQuery = "SELECT category_id, category_name FROM n_categorie_livres ORDER BY category_name";
 $categoryStmt = $db->prepare($categoryQuery);
 $categoryStmt->execute();
 $categories = $categoryStmt->fetchAll(PDO::FETCH_ASSOC);

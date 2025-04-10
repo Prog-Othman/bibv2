@@ -15,7 +15,92 @@ if ($_SESSION['user']['user_role_id'] != 1) {
 }
 
 // Connexion à la base de données
-$db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
+try {
+    $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
+    error_log("Database connection successful.");
+} catch (PDOException $e) {
+    error_log("Database connection failed: " . $e->getMessage());
+    exit("Database connection error.");
+}
+
+// Traitement de la création d'un nouvel emprunt
+if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        // Debug: Print POST data
+        error_log("POST data: " . print_r($_POST, true));
+        
+        // Vérifier que tous les champs requis sont présents
+        if (!isset($_POST['livre_id']) || !isset($_POST['user_id']) || !isset($_POST['date_retour'])) {
+            throw new Exception("Tous les champs sont requis");
+        }
+
+        // Récupérer un exemplaire disponible du livre
+        $exemplaireQuery = "SELECT id_exemplaire 
+                           FROM n_exemplaires 
+                           WHERE id_livre = ? 
+                           AND id_exemplaire NOT IN (
+                               SELECT id_exemplaire 
+                               FROM n_emprunts 
+                               WHERE statut IN ('actif', 'en_retard')
+                           )
+                           LIMIT 1";
+        $exemplaireStmt = $db->prepare($exemplaireQuery);
+        $exemplaireStmt->execute([$_POST['livre_id']]);
+        $exemplaire = $exemplaireStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$exemplaire) {
+            throw new Exception("Aucun exemplaire disponible pour ce livre");
+        }
+
+        // Debug: Print exemplaire data
+        error_log("Exemplaire found: " . print_r($exemplaire, true));
+
+        // Insérer le nouvel emprunt
+        $insertQuery = "INSERT INTO n_emprunts (id_exemplaire, id_utilisateur, date_emprunt, date_retour, statut) 
+                       VALUES (?, ?, NOW(), ?, 'actif')";
+        $insertStmt = $db->prepare($insertQuery);
+        $result = $insertStmt->execute([
+            $exemplaire['id_exemplaire'],
+            $_POST['user_id'],
+            $_POST['date_retour']
+        ]);
+
+        // Debug: Print insert result
+        error_log("Insert result: " . ($result ? "success" : "failed"));
+
+        // Rediriger vers la même page pour voir le nouvel emprunt
+        header('Location: loans.php');
+        exit();
+    } catch (Exception $e) {
+        $error = $e->getMessage();
+        error_log("Error creating loan: " . $error);
+    }
+}
+
+// Debug: Print all loans in database
+$debugQuery = "SELECT e.*, u.user_nom, l.titre 
+               FROM n_emprunts e 
+               JOIN n_utilisateurs u ON e.id_utilisateur = u.user_id 
+               JOIN n_exemplaires ex ON e.id_exemplaire = ex.id_exemplaire 
+               JOIN n_livre l ON ex.id_livre = l.id_livre 
+               ORDER BY e.date_emprunt DESC";
+$debugStmt = $db->query($debugQuery);
+error_log("All loans in database: " . print_r($debugStmt->fetchAll(PDO::FETCH_ASSOC), true));
+
+// Récupérer la liste des livres disponibles
+$livresQuery = "SELECT l.id_livre, l.titre, l.isbn, l.auteur,
+                COUNT(e.id_exemplaire) as total_exemplaires,
+                COUNT(CASE WHEN em.statut IN ('actif', 'en_retard') THEN 1 END) as exemplaires_empruntes
+                FROM n_livre l
+                LEFT JOIN n_exemplaires e ON l.id_livre = e.id_livre 
+                LEFT JOIN n_emprunts em ON e.id_exemplaire = em.id_exemplaire
+                GROUP BY l.id_livre
+                HAVING total_exemplaires > exemplaires_empruntes
+                ORDER BY l.titre";
+
+$livresStmt = $db->prepare($livresQuery);
+$livresStmt->execute();
+$livresDisponibles = $livresStmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -46,6 +131,10 @@ if ($status !== 'all') {
     $params[] = $status;
 }
 
+// Debug: Print the final query
+error_log("Main query: " . $query);
+error_log("Query params: " . print_r($params, true));
+
 // Compte total pour la pagination
 $countStmt = $db->prepare(str_replace('e.*, u.user_nom', 'COUNT(*) as count', $query));
 $countStmt->execute($params);
@@ -55,16 +144,20 @@ $totalPages = ceil($total / $limit);
 // Ajout de la pagination et du tri à la requête principale
 $query .= " ORDER BY e.date_emprunt DESC LIMIT $limit OFFSET $offset";
 $stmt = $db->prepare($query);
+error_log("Executing main query...");
 $stmt->execute($params);
 $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
+error_log("Loans fetched: " . print_r($loans, true));
 
 // Statistiques des emprunts
 $stats = [
     'total' => $db->query("SELECT COUNT(*) FROM n_emprunts")->fetchColumn(),
     'actif' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'actif'")->fetchColumn(),
     'en_retard' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'en_retard'")->fetchColumn(),
-    'termine' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'termine'")->fetchColumn()
+    'termine' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'termine'")->fetchColumn(),
 ];
+
+
 
 // Définir le titre de la page
 $page_title = "Gestion des emprunts";
@@ -236,12 +329,27 @@ require_once '../includes/sidebar.php';
                                                 </div>
                                                 <div>
                                                     <?php echo htmlspecialchars($loan['user_nom']); ?>
-                                                    <div class="small text-muted"><?php echo htmlspecialchars($loan['user_login']); ?></div>
+                                                    <div class="small text-muted">
+                                                        <?php echo htmlspecialchars($loan['user_login']); ?>
+                                                        <?php if($loan['statut'] === 'actif' && strtotime($loan['date_emprunt']) > strtotime('-24 hours')): ?>
+                                                            <span class="badge bg-warning text-dark ms-2">Nouveau</span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td><?php echo date('d/m/Y', strtotime($loan['date_emprunt'])); ?></td>
-                                        <td><?php echo date('d/m/Y', strtotime($loan['date_retour'])); ?></td>
+                                        <td>
+                                            <?php echo date('d/m/Y', strtotime($loan['date_emprunt'])); ?>
+                                            <div class="small text-muted">
+                                                Par: <?php echo htmlspecialchars($loan['user_nom']); ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <?php echo date('d/m/Y', strtotime($loan['date_retour'])); ?>
+                                            <?php if(strtotime($loan['date_retour']) < time() && $loan['statut'] !== 'termine'): ?>
+                                                <div class="small text-danger">En retard</div>
+                                            <?php endif; ?>
+                                        </td>
                                         <td>
                                             <?php
                                             $statusClass = 'bg-secondary';
@@ -335,13 +443,118 @@ require_once '../includes/sidebar.php';
             <form action="?action=add" method="POST">
                 <div class="modal-body">
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Code barre de l'exemplaire</label>
-                        <input type="text" class="form-control form-control-lg" name="code_barre" required>
+                        <label class="form-label small fw-medium text-gray-800">Livre</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control form-control-lg border-start-0" id="bookSearch" 
+                                   placeholder="Rechercher par titre, auteur ou ISBN..." autocomplete="off"
+                                   list="booksList">
+                            <input type="hidden" name="livre_id" id="selectedBookId" required>
+                            <datalist id="booksList">
+                                <?php
+                                $booksQuery = $db->query("SELECT id_livre, titre, isbn FROM n_livre ORDER BY titre");
+                                while($book = $booksQuery->fetch(PDO::FETCH_ASSOC)) {
+                                    echo "<option value='" . htmlspecialchars($book['titre']) . " (ISBN: " . htmlspecialchars($book['isbn']) . ")'>";
+                                }
+                                ?>
+                            </datalist>
+                        </div>
+                        <div id="bookSearchResults" class="list-group position-absolute w-100 shadow-sm d-none"
+                             style="max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        </div>
                     </div>
+                    <script>
+                    document.getElementById('bookSearch').addEventListener('input', function(e) {
+                        const searchTerm = e.target.value;
+                        const resultsDiv = document.getElementById('bookSearchResults');
+                        
+                        if (searchTerm.length < 2) {
+                            resultsDiv.classList.add('d-none');
+                            return;
+                        }
+
+                        fetch(`search_books.php?term=${encodeURIComponent(searchTerm)}`)
+                            .then(response => response.json())
+                            .then(books => {
+                                resultsDiv.innerHTML = '';
+                                books.forEach(book => {
+                                    const item = document.createElement('a');
+                                    item.classList.add('list-group-item', 'list-group-item-action');
+                                    item.innerHTML = `${book.titre} (ISBN: ${book.isbn})`;
+                                    item.addEventListener('click', () => {
+                                        document.getElementById('bookSearch').value = book.titre;
+                                        document.getElementById('selectedBookId').value = book.id_livre;
+                                        resultsDiv.classList.add('d-none');
+                                    });
+                                    resultsDiv.appendChild(item);
+                                });
+                                resultsDiv.classList.remove('d-none');
+                            });
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('#bookSearch')) {
+                            document.getElementById('bookSearchResults').classList.add('d-none');
+                        }
+                    });
+                    </script>                    
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Identifiant de l'utilisateur</label>
-                        <input type="text" class="form-control form-control-lg" name="user_login" required>
+                        <label class="form-label small fw-medium text-gray-800">Utilisateur</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control form-control-lg" id="userSearch" 
+                                   placeholder="Rechercher un utilisateur..." autocomplete="off"
+                                   list="usersList">
+                            <input type="hidden" name="user_id" id="selectedUserId" required>
+                            <datalist id="usersList">
+                                <?php
+                                $usersQuery = $db->query("SELECT user_id, user_nom FROM n_utilisateurs ORDER BY user_nom");
+                                while($user = $usersQuery->fetch(PDO::FETCH_ASSOC)) {
+                                    echo "<option value='" . htmlspecialchars($user['user_nom']) . "'>";
+                                }
+                                ?>
+                            </datalist>
+                        </div>
+                        <div id="userSearchResults" class="list-group position-absolute w-100 d-none" 
+                             style="max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        </div>
                     </div>
+                    <script>
+                    document.getElementById('userSearch').addEventListener('input', function(e) {
+                        const searchTerm = e.target.value;
+                        const resultsDiv = document.getElementById('userSearchResults');
+                        
+                        if (searchTerm.length < 2) {
+                            resultsDiv.classList.add('d-none');
+                            return;
+                        }
+
+                        fetch(`search_users.php?term=${encodeURIComponent(searchTerm)}`)
+                            .then(response => response.json())
+                            .then(users => {
+                                resultsDiv.innerHTML = '';
+                                users.forEach(user => {
+                                    const item = document.createElement('a');
+                                    item.classList.add('list-group-item', 'list-group-item-action');
+                                    item.innerHTML = `${user.user_nom} (${user.user_login})`;
+                                    item.addEventListener('click', () => {
+                                        document.getElementById('userSearch').value = user.user_nom;
+                                        document.getElementById('selectedUserId').value = user.user_id;
+                                        resultsDiv.classList.add('d-none');
+                                    });
+                                    resultsDiv.appendChild(item);
+                                });
+                                resultsDiv.classList.remove('d-none');
+                            });
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('#userSearch')) {
+                            document.getElementById('userSearchResults').classList.add('d-none');
+                        }
+                    });
+                    </script>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Date de retour prévue</label>
                         <input type="date" class="form-control form-control-lg" name="date_retour" required>

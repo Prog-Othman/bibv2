@@ -14,7 +14,7 @@ class Book {
         $sql = "SELECT b.*, c.name as category_name, a.name as author_name, 
                 (SELECT COUNT(*) = 0 FROM n_loan l WHERE l.book_id = b.id AND l.return_date IS NULL) as available 
                 FROM n_livre b 
-                LEFT JOIN n_category c ON b.category_id = c.id 
+                LEFT JOIN n_categorie_livres c ON b.category_id = c.id 
                 LEFT JOIN n_author a ON b.author_id = a.id 
                 WHERE 1=1";
 
@@ -72,14 +72,14 @@ class Book {
     }
 
     public function getAllCategories() {
-        $this->db->query("SELECT * FROM n_category ORDER BY name ASC");
+        $this->db->query("SELECT * FROM n_categorie_livres ORDER BY name ASC");
         return $this->db->resultSet();
     }
 
     public function getBookById($id) {
         $this->db->query("SELECT b.*, c.name as category_name, a.name as author_name 
                          FROM n_livre b 
-                         LEFT JOIN n_category c ON b.category_id = c.id 
+                         LEFT JOIN n_categorie_livres c ON b.category_id = c.id 
                          LEFT JOIN n_author a ON b.author_id = a.id 
                          WHERE b.id = ?");
         $this->db->bind(null, $id);
