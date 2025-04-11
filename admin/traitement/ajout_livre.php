@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $mots_cles = $_POST['mots_cles'] ?? '';
         $resume = $_POST['resume'] ?? '';
 
+        $author_name ='NULL';
         // Vérifier si la catégorie existe dans la table n_categorie_livres
         $categoryCheckQuery = "SELECT COUNT(*) FROM n_categorie_livres WHERE id_categorie = ?";
         $stmt = $connexion->prepare($categoryCheckQuery);
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Insérer le nouveau livre dans la table n_livre
-        $insertQuery = "INSERT INTO n_livre (titre, author_id, isbn, date_publication, quantite_totale, quantite_disponible, category_id, mots_cle, resume) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $insertQuery = "INSERT INTO n_livre (titre, author_id, isbn, date_publication, quantite_totale, quantite_disponible, category_id, mots_cle, resume,auteur) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
         $insertStmt = $connexion->prepare($insertQuery);
         $result = $insertStmt->execute([
             $titre,
@@ -49,7 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $quantite_disponible,
             $categorie,
             $mots_cles,
-            $resume 
+            $resume,
+            $author_name
         ]);
 
         // Vérifier le résultat de l'insertion

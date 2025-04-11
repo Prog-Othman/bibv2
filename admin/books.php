@@ -94,13 +94,14 @@ $search = isset($_GET['search']) ? $_GET['search'] : '';
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 
 // Construction de la requête
-$query = "SELECT l.*, c.nom_categorie, 
+$query = "SELECT l.*, c.nom_categorie, aut.*,
          (SELECT COUNT(*) FROM n_exemplaires WHERE id_livre = l.id_livre) as total_copies,
          (SELECT COUNT(*) FROM n_exemplaires e 
           LEFT JOIN n_emprunts em ON e.id_exemplaire = em.id_exemplaire 
           WHERE e.id_livre = l.id_livre AND (em.statut = 'actif' OR em.statut = 'en_retard')) as copies_borrowed
          FROM n_livre l
          LEFT JOIN n_categorie_livres c ON l.category_id = c.id_categorie
+         join n_author aut on l.author_id = aut.author_id
          WHERE 1=1";
 
 $params = [];
@@ -229,7 +230,7 @@ require_once '../includes/sidebar.php';
                                             <?php echo htmlspecialchars($book['titre']); ?>
                                         </td>
                                         <td class="text-muted">
-                                            <?php echo htmlspecialchars($book['auteur']); ?>
+                                            <?php echo htmlspecialchars($book['author_name']); ?>
                                         </td>
                                         <td>
                                             <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">
@@ -255,7 +256,7 @@ require_once '../includes/sidebar.php';
                                                     data-bs-target="#editBookModal"
                                                     data-id="<?php echo $book['id_livre']; ?>"
                                                     data-titre="<?php echo htmlspecialchars($book['titre']); ?>"
-                                                    data-auteur="<?php echo htmlspecialchars($book['auteur']); ?>"
+                                                    data-auteur="<?php echo htmlspecialchars($book['author_name']); ?>"
                                                     data-isbn="<?php echo htmlspecialchars($book['isbn']); ?>"
                                                     data-categorie="<?php echo $book['category_id']; ?>">
                                                     <i class="bi bi-pencil"></i>
@@ -353,7 +354,7 @@ require_once '../includes/sidebar.php';
                     <!-- ISBN -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">ISBN</label>
-                        <input type="text" class="form-control form-control-lg" name="isbn" required>
+                        <input type="text" class="form-control form-control-lg" name="isbn">
                     </div>
 
                     <!-- Date de publication -->
@@ -414,7 +415,7 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Supprimer le livre</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
-            <form action="Traitement/supprimer_livre.php" method="POST">
+            <form action="traitement/supprimer_livre.php" method="POST">
                 <input type="hidden" name="id_livre" id="deleteBookId">
                 <div class="modal-body">
                     <p class="text-muted mb-3">
@@ -482,8 +483,8 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Ajouter un exemplaire</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="Traitement/Ajoute_exemplaire.php" method="POST" id="addCopyForm">
-                <input type="text" name="id_livre" id="copyBookId">
+            <form action="traitement/Ajoute_exemplaire.php" method="POST" id="addCopyForm">
+                <input type="hidden" name="id_livre" id="copyBookId">
 
                 <div class="modal-body">
                     <p class="text-muted mb-4">
