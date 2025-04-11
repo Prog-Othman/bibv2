@@ -1,6 +1,6 @@
 <?php
 $page_title = "Ajouter une catégorie";
-require_once __DIR__ . '/../../Includes/Sidebar.php';
+require_once __DIR__ . '/../../includes/sidebar.php';
 ?>
 
 <div class="container">

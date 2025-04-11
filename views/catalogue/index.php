@@ -265,7 +265,7 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
 
 <?php 
 // Corriger le chemin du footer
-include __DIR__ . '/../../Includes/Footer.php'; 
+include __DIR__ . '/../../includes/footer.php'; 
 ?>
 
 </body>

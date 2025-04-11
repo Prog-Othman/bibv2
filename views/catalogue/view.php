@@ -1,6 +1,6 @@
 <?php
 // Inclure l'en-tête
-include __DIR__ . '/../../Includes/Header.php';
+include __DIR__ . '/../../includes/header.php';
 ?>
 
 
@@ -77,5 +77,5 @@ include __DIR__ . '/../../Includes/Header.php';
 
 <?php 
 // Corriger le chemin du footer
-include __DIR__ . '/../../Includes/Footer.php'; 
+include __DIR__ . '/../../includes/footer.php'; 
 ?>

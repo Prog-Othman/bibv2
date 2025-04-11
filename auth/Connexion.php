@@ -1,4 +1,6 @@
 <?php
+
+ob_start();
 require_once __DIR__ . '/../bootstrap.php';
 
 // Si l'utilisateur est déjà connecté, le rediriger vers son tableau de bord

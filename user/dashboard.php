@@ -66,8 +66,8 @@ $notifications = $query_notifications->fetchAll(PDO::FETCH_ASSOC);
 $page_title = "Tableau de bord";
 
 // Inclure le header et sidebar
-require_once '../Includes/Header.php';
-require_once '../Includes/Sidebar.php';
+require_once '../includes/header.php';
+require_once '../includes/sidebar.php';
 ?>
 
 <!-- Main Content Area -->
