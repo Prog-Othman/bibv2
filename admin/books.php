@@ -483,7 +483,7 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Ajouter un exemplaire</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="traitement/Ajoute_exemplaire.php" method="POST" id="addCopyForm">
+            <form action="traitement/ajoute_exemplaire.php" method="POST" id="addCopyForm">
                 <input type="hidden" name="id_livre" id="copyBookId">
 
                 <div class="modal-body">
