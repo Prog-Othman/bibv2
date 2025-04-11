@@ -1,6 +1,13 @@
 <?php
 require_once '../bootstrap.php';
 require_once '../config/config.php';
+require_once '../config/Database.php';
+
+
+Database::getInstance();
+
+
+global $connexion;
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user'])) {
@@ -14,8 +21,7 @@ if ($_SESSION['user']['user_role_id'] != 1) {
     exit();
 }
 
-// Connexion à la base de données
-$db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
+
 
 // Traitement des actions
 $action = isset($_GET['action']) ? $_GET['action'] : 'list';
@@ -28,7 +34,7 @@ switch ($action) {
             $description = $_POST['description'] ?? '';
             
             if (!empty($nom)) {
-                $stmt = $db->prepare("INSERT INTO n_categorie_livres (nom_categorie, description) VALUES (?, ?)");
+                $stmt = $connexion->prepare("INSERT INTO n_categorie_livres (nom_categorie, description) VALUES (?, ?)");
                 if ($stmt->execute([$nom, $description])) {
                     $message = '<div class="alert alert-success">Catégorie ajoutée avec succès.</div>';
                 } else {
@@ -45,7 +51,7 @@ switch ($action) {
             $description = $_POST['description'] ?? '';
             
             if (!empty($nom)) {
-                $stmt = $db->prepare("UPDATE n_categorie_livres SET nom_categorie = ?, description = ? WHERE id_categorie = ?");
+                $stmt = $connexion->prepare("UPDATE n_categorie_livres SET nom_categorie = ?, description = ? WHERE id_categorie = ?");
                 if ($stmt->execute([$nom, $description, $id])) {
                     $message = '<div class="alert alert-success">Catégorie mise à jour avec succès.</div>';
                 } else {
@@ -59,12 +65,12 @@ switch ($action) {
         $id = $_GET['id'] ?? null;
         if ($id) {
             // Vérifier si la catégorie est utilisée
-            $stmt = $db->prepare("SELECT COUNT(*) FROM n_livre WHERE id_categorie = ?");
+            $stmt = $connexion->prepare("SELECT COUNT(*) FROM n_livre WHERE category_id = ?");
             $stmt->execute([$id]);
             $count = $stmt->fetchColumn();
 
             if ($count == 0) {
-                $stmt = $db->prepare("DELETE FROM n_categorie_livres WHERE id_categorie = ?");
+                $stmt = $connexion->prepare("DELETE FROM n_categorie_livres WHERE id_categorie = ?");
                 if ($stmt->execute([$id])) {
                     $message = '<div class="alert alert-success">Catégorie supprimée avec succès.</div>';
                 } else {
@@ -78,7 +84,7 @@ switch ($action) {
 }
 
 // Récupérer toutes les catégories
-$categories = $db->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
+$categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
 
 // Définir le titre de la page
 $page_title = "Gestion des catégories";
@@ -130,7 +136,7 @@ require_once '../includes/sidebar.php';
                         <tbody>
                             <?php foreach ($categories as $category): ?>
                                 <?php
-                                $stmt = $db->prepare("SELECT COUNT(*) FROM n_livre WHERE id_categorie = ?");
+                                $stmt = $connexion->prepare("SELECT COUNT(*) FROM n_livre WHERE category_id = ?");
                                 $stmt->execute([$category['id_categorie']]);
                                 $bookCount = $stmt->fetchColumn();
                                 ?>

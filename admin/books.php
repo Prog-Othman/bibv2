@@ -1,54 +1,88 @@
 <?php
 require_once '../bootstrap.php';
 require_once '../config/config.php';
+require_once '../config/Database.php';
 
-// Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['user'])) {
-    header('Location: ../auth/Connexion.php');
-    exit();
-}
 
-// Vérifier si l'utilisateur est un administrateur
-if ($_SESSION['user']['user_role_id'] != 1) {
-    header('Location: ../user/dashboard.php');
-    exit();
-}
+Database::getInstance();
 
-// Connexion à la base de données
-$db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
 
-// Traitement de l'ajout d'un nouveau livre
-if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        // Vérifier que tous les champs requis sont présents
-        if (!isset($_POST['titre']) || !isset($_POST['auteur']) || !isset($_POST['isbn']) || !isset($_POST['categorie'])) {
-            throw new Exception("Tous les champs sont requis");
-        }
+global $connexion;
+// // Vérifier si l'utilisateur est connecté
+// if (!isset($_SESSION['user'])) {
+//     header('Location: ../auth/Connexion.php');
+//     exit();
+// }
 
-        // Insérer le nouveau livre
-        $insertQuery = "INSERT INTO n_livre (titre, auteur, isbn, id_categorie) 
-                       VALUES (?, ?, ?, ?)";
-        $insertStmt = $db->prepare($insertQuery);
-        $result = $insertStmt->execute([
-            $_POST['titre'],
-            $_POST['auteur'],
-            $_POST['isbn'],
-            $_POST['categorie']
-        ]);
+// // Vérifier si l'utilisateur est un administrateur
+// if ($_SESSION['user']['user_role_id'] != 1) {
+//     header('Location: ../user/dashboard.php');
+//     exit();
+// }
 
-        // Vérifier le résultat de l'insertion
-        if (!$result) {
-            throw new Exception("Erreur lors de l'ajout du livre");
-        }
 
-        // Rediriger vers la même page pour voir le nouveau livre
-        header('Location: books.php');
-        exit();
-    } catch (Exception $e) {
-        $error = $e->getMessage();
-        error_log("Error adding book: " . $error);
-    }
-}
+// Récupérer la liste des auteurs
+$auteurs = [];
+$query = "SELECT author_id, author_name FROM n_author WHERE author_status = 'Actif'";
+$stmt = $connexion->prepare($query);
+$stmt->execute();
+$auteurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupérer la liste des catégories
+$categories = [];
+$query_categories = "SELECT id_categorie ,nom_categorie FROM n_categorie_livres";
+$stmt_categories = $connexion->prepare($query_categories);
+$stmt_categories->execute();
+$categories = $stmt_categories->fetchAll(PDO::FETCH_ASSOC);
+
+
+// // Traitement de l'ajout d'un nouveau livre
+// if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+//     try {
+//         // Vérifier que tous les champs requis sont présents
+//         if (!isset($_POST['titre']) || !isset($_POST['auteur']) || !isset($_POST['isbn']) || !isset($_POST['categorie']) || !isset($_POST['quantite_totale']) || !isset($_POST['quantite_disponible'])) {
+//             throw new Exception("Tous les champs sont requis");
+//         }
+
+//         // Récupérer les données du formulaire
+//         $titre = $_POST['titre'];
+//         $auteur = $_POST['auteur'];
+//         $isbn = $_POST['isbn'];
+//         $date_publication = $_POST['date_publication'] ?: null; // Si vide, null
+//         $quantite_totale = $_POST['quantite_totale'];
+//         $quantite_disponible = $_POST['quantite_disponible'];
+//         $categorie = $_POST['categorie'];
+
+//         // Insérer le nouveau livre dans la table n_livre
+//         $insertQuery = "INSERT INTO n_livre (titre, auteur, isbn, date_publication, quantite_totale, quantite_disponible, id_categorie, mots_cles) 
+//                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+//         $insertStmt = $connexion->prepare($insertQuery);
+//         $result = $insertStmt->execute([
+//             $titre,
+//             $auteur,
+//             $isbn,
+//             $date_publication,
+//             $quantite_totale,
+//             $quantite_disponible,
+//             $categorie,
+//             $mots_cles
+//         ]);
+
+//         // Vérifier le résultat de l'insertion
+//         if (!$result) {
+//             throw new Exception("Erreur lors de l'ajout du livre");
+//         }
+
+//         // Rediriger vers la page des livres après l'ajout
+//         header('Location: books.php');
+//         exit();
+
+//     } catch (Exception $e) {
+//         $error = $e->getMessage();
+//         error_log("Error adding book: " . $error);
+//         echo "Erreur : " . $error;
+//     }
+// }
 
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -66,34 +100,35 @@ $query = "SELECT l.*, c.nom_categorie,
           LEFT JOIN n_emprunts em ON e.id_exemplaire = em.id_exemplaire 
           WHERE e.id_livre = l.id_livre AND (em.statut = 'actif' OR em.statut = 'en_retard')) as copies_borrowed
          FROM n_livre l
-         LEFT JOIN n_categorie_livres c ON l.id_categorie = c.id_categorie
+         LEFT JOIN n_categorie_livres c ON l.category_id = c.id_categorie
          WHERE 1=1";
 
 $params = [];
 if (!empty($search)) {
-    $query .= " AND (l.titre LIKE ? OR l.auteur LIKE ? OR l.isbn LIKE ?)";
-    $params = array_merge($params, ["%$search%", "%$search%", "%$search%"]);
+    $query .= " AND (l.titre LIKE ? OR l.auteur LIKE ? OR l.isbn LIKE ? OR l.mots_cle LIKE ? OR l.resume LIKE ?)";
+    $params = array_merge($params, ["%$search%", "%$search%", "%$search%", "%$search%", "%$search%"]);
 }
 
 if ($categoryFilter > 0) {
-    $query .= " AND l.id_categorie = ?";
+    $query .= " AND l.category_id = ?";
     $params[] = $categoryFilter;
 }
 
 // Compte total pour la pagination
-$countStmt = $db->prepare(str_replace('l.*, c.nom_categorie,', 'COUNT(*) as count,', $query));
+$countStmt = $connexion->prepare(str_replace('l.*, c.nom_categorie,', 'COUNT(*) as count,', $query));
 $countStmt->execute($params);
 $total = $countStmt->fetch(PDO::FETCH_ASSOC)['count'];
 $totalPages = ceil($total / $limit);
 
 // Ajout de la pagination à la requête principale
 $query .= " ORDER BY l.titre LIMIT $limit OFFSET $offset";
-$stmt = $db->prepare($query);
+$stmt = $connexion->prepare($query);
 $stmt->execute($params);
 $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
 // Récupérer les catégories pour le filtre
-$categories = $db->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
+$categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
 
 // Définir le titre de la page
 $page_title = "Gestion des livres";
@@ -104,7 +139,7 @@ require_once '../includes/sidebar.php';
 ?>
 
 <!-- Main Content Area -->
-<div class="content w-100 m-0 pt-5"  id="content">
+<div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
@@ -115,6 +150,21 @@ require_once '../includes/sidebar.php';
                 </button>
             </div>
         </div>
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'modification_effectuee'): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                ✅ Le livre a été modifié avec succès.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'suppression_effectuee'): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                ✅ Le livre a été supprimé avec succès.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+        <?php endif; ?>
+
+
 
         <!-- Search and Filter Section -->
         <div class="card border-0 shadow-sm rounded-3 mb-4">
@@ -125,17 +175,17 @@ require_once '../includes/sidebar.php';
                             <span class="input-group-text bg-light border-end-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text" class="form-control border-start-0" name="search" 
-                                   placeholder="Rechercher par titre, auteur ou ISBN..." 
-                                   value="<?php echo htmlspecialchars($search); ?>">
+                            <input type="text" class="form-control border-start-0" name="search"
+                                placeholder="Rechercher par titre, auteur ou ISBN..."
+                                value="<?php echo htmlspecialchars($search); ?>">
                         </div>
                     </div>
                     <div class="col-12 col-md-4">
                         <select class="form-select" name="category">
                             <option value="0">Toutes les catégories</option>
                             <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id_categorie']; ?>" 
-                                        <?php echo $categoryFilter == $category['id_categorie'] ? 'selected' : ''; ?>>
+                                <option value="<?php echo $category['id_categorie']; ?>"
+                                    <?php echo $categoryFilter == $category['id_categorie'] ? 'selected' : ''; ?>>
                                     <?php echo htmlspecialchars($category['nom_categorie']); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -200,25 +250,34 @@ require_once '../includes/sidebar.php';
                                         </td>
                                         <td class="px-4">
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" 
-                                                        data-bs-toggle="modal" 
-                                                        data-bs-target="#editBookModal"
-                                                        data-id="<?php echo $book['id_livre']; ?>"
-                                                        data-titre="<?php echo htmlspecialchars($book['titre']); ?>"
-                                                        data-auteur="<?php echo htmlspecialchars($book['auteur']); ?>"
-                                                        data-isbn="<?php echo htmlspecialchars($book['isbn']); ?>"
-                                                        data-categorie="<?php echo $book['id_categorie']; ?>">
+                                                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#editBookModal"
+                                                    data-id="<?php echo $book['id_livre']; ?>"
+                                                    data-titre="<?php echo htmlspecialchars($book['titre']); ?>"
+                                                    data-auteur="<?php echo htmlspecialchars($book['auteur']); ?>"
+                                                    data-isbn="<?php echo htmlspecialchars($book['isbn']); ?>"
+                                                    data-categorie="<?php echo $book['category_id']; ?>">
                                                     <i class="bi bi-pencil"></i>
                                                     <span>Modifier</span>
                                                 </button>
                                                 <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#addCopyModal"
-                                                        data-id="<?php echo $book['id_livre']; ?>"
-                                                        data-titre="<?php echo htmlspecialchars($book['titre']); ?>">
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#addCopyModal"
+                                                    data-id="<?php echo $book['id_livre']; ?>"
+                                                    data-titre="<?php echo htmlspecialchars($book['titre']); ?>">
                                                     <i class="bi bi-plus-circle"></i>
                                                     <span>Exemplaire</span>
                                                 </button>
+                                                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteBookModal"
+                                                    data-id="<?php echo $book['id_livre']; ?>"
+                                                    data-title="<?php echo htmlspecialchars($book['titre']); ?>">
+                                                    <i class="bi bi-trash"></i>
+                                                    <span>Supprimer</span>
+                                                </button>
+
                                             </div>
                                         </td>
                                     </tr>
@@ -241,11 +300,11 @@ require_once '../includes/sidebar.php';
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
                     <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page-1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $categoryFilter; ?>">
+                        <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $categoryFilter; ?>">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
-                    <?php for ($i = max(1, $page-2); $i <= min($totalPages, $page+2); $i++): ?>
+                    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
                         <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $categoryFilter; ?>">
                                 <?php echo $i; ?>
@@ -253,7 +312,7 @@ require_once '../includes/sidebar.php';
                         </li>
                     <?php endfor; ?>
                     <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page+1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $categoryFilter; ?>">
+                        <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&category=<?php echo $categoryFilter; ?>">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
@@ -271,24 +330,51 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Nouveau livre</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="?action=add" method="POST">
+            <form action="traitement/ajout_livre.php" method="POST">
                 <div class="modal-body">
+                    <!-- Titre du livre -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Titre</label>
                         <input type="text" class="form-control form-control-lg" name="titre" required>
                     </div>
+
+                    <!-- Auteur -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Auteur</label>
-                        <input type="text" class="form-control form-control-lg" name="auteur" required>
+                        <select class="form-select form-select-lg" name="auteur" required>
+                            <?php foreach ($auteurs as $auteur): ?>
+                                <option value="<?php echo $auteur['author_id']; ?>">
+                                    <?php echo htmlspecialchars($auteur['author_name']); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
+
+                    <!-- ISBN -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">ISBN</label>
                         <input type="text" class="form-control form-control-lg" name="isbn" required>
                     </div>
+
+                    <!-- Date de publication -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Mots-clés</label>
-                        <input type="text" class="form-control form-control-lg" name="mots_cles" placeholder="Séparez les mots-clés par des virgules">
+                        <label class="form-label small fw-medium text-gray-800">Date de publication</label>
+                        <input type="date" class="form-control form-control-lg" name="date_publication" required>
                     </div>
+
+                    <!-- Quantité totale -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-gray-800">Quantité totale</label>
+                        <input type="number" class="form-control form-control-lg" name="quantite_totale" required>
+                    </div>
+
+                    <!-- Quantité disponible -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-gray-800">Quantité disponible</label>
+                        <input type="number" class="form-control form-control-lg" name="quantite_disponible" required>
+                    </div>
+
+                    <!-- Catégorie -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Catégorie</label>
                         <select class="form-select form-select-lg" name="categorie" required>
@@ -299,10 +385,46 @@ require_once '../includes/sidebar.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-gray-800">Mots-clés</label>
+                        <textarea class="form-control form-control-lg" name="mots_cles" maxlength="250" rows="2" placeholder="Ex: science, roman, aventure..."></textarea>
+                        <div class="form-text">Maximum 250 caractères.</div>
+                    </div>
+
+                    <!-- Résumé -->
+                    <div class="mb-4">
+                        <label class="form-label small fw-medium text-gray-800">Résumé</label>
+                        <textarea class="form-control form-control-lg" name="resume" rows="5" placeholder="Résumé du livre..."></textarea>
+                    </div>
                 </div>
+
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-primary px-4">Ajouter</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="deleteBookModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title text-gray-800">Supprimer le livre</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <form action="Traitement/supprimer_livre.php" method="POST">
+                <input type="hidden" name="id_livre" id="deleteBookId">
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        Êtes-vous sûr de vouloir supprimer le livre :
+                        <strong id="deleteBookTitle" class="text-danger"></strong> ?
+                    </p>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger px-4">Supprimer</button>
                 </div>
             </form>
         </div>
@@ -317,7 +439,7 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Modifier le livre</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="?action=edit" method="POST" id="editForm">
+            <form action="traitement/edit_livre.php" method="POST" id="editForm">
                 <input type="hidden" name="id" id="editId">
                 <div class="modal-body">
                     <div class="mb-4">
@@ -360,59 +482,114 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Ajouter un exemplaire</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="?action=add_copy" method="POST" id="addCopyForm">
-                <input type="hidden" name="livre_id" id="copyBookId">
+            <form action="Traitement/Ajoute_exemplaire.php" method="POST" id="addCopyForm">
+                <input type="text" name="id_livre" id="copyBookId">
+
                 <div class="modal-body">
-                    <p class="text-muted mb-4">Vous allez ajouter un nouvel exemplaire pour le livre : <strong id="copyBookTitle"></strong></p>
-                    <div class="mb-4">
+                    <p class="text-muted mb-4">
+                        Vous allez ajouter un nouvel exemplaire pour le livre :
+                        <strong id="copyBookTitle"></strong>
+                    </p>
+
+                    <div class="mb-3">
                         <label class="form-label small fw-medium text-gray-800">Code barre</label>
                         <input type="text" class="form-control form-control-lg" name="code_barre" required>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-gray-800">Statut</label>
+                        <select name="statut" class="form-select form-select-lg" required>
+                            <option value="disponible" selected>Disponible</option>
+                            <option value="emprunte">Emprunté</option>
+                            <option value="reserve">Réservé</option>
+                            <option value="maintenance">Maintenance</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-gray-800">État</label>
+                        <select name="etat" class="form-select form-select-lg" required>
+                            <option value="neuf">Neuf</option>
+                            <option value="bon" selected>Bon</option>
+                            <option value="moyen">Moyen</option>
+                            <option value="mauvais">Mauvais</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-gray-800">Date d'acquisition</label>
+                        <input type="date" class="form-control form-control-lg" name="date_acquisition" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-gray-800">Date dernière maintenance</label>
+                        <input type="date" class="form-control form-control-lg" name="date_derniere_maintenance" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-medium text-gray-800">Notes</label>
+                        <textarea class="form-control form-control-lg" name="notes" rows="3" placeholder="Ajouter des notes (optionnel)"></textarea>
+                    </div>
                 </div>
+
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-primary px-4">Ajouter</button>
                 </div>
             </form>
+
         </div>
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Edit book modal handler
-    const editModal = document.getElementById('editBookModal');
-    if (editModal) {
-        editModal.addEventListener('show.bs.modal', function(event) {
+    document.addEventListener('DOMContentLoaded', function() {
+        // Edit book modal handler
+        const editBookModal = document.getElementById('editBookModal');
+        if (editBookModal) {
+            editBookModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+
+                const id = button.getAttribute('data-id');
+                const titre = button.getAttribute('data-titre');
+                const auteur = button.getAttribute('data-auteur');
+                const isbn = button.getAttribute('data-isbn');
+                const categorie = button.getAttribute('data-categorie');
+
+                document.getElementById('editId').value = id;
+                document.getElementById('editTitre').value = titre;
+                document.getElementById('editAuteur').value = auteur;
+                document.getElementById('editIsbn').value = isbn;
+                document.getElementById('editCategorie').value = categorie;
+            });
+        }
+
+
+        // Add copy modal handler
+        const addCopyModal = document.getElementById('addCopyModal');
+        if (addCopyModal) {
+            addCopyModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const titre = button.getAttribute('data-titre');
+
+                addCopyModal.querySelector('#copyBookId').value = id;
+                addCopyModal.querySelector('#copyBookTitle').textContent = titre;
+            });
+        }
+    });
+
+
+
+    const deleteBookModal = document.getElementById('deleteBookModal');
+    if (deleteBookModal) {
+        deleteBookModal.addEventListener('show.bs.modal', function(event) {
             const button = event.relatedTarget;
             const id = button.getAttribute('data-id');
-            const titre = button.getAttribute('data-titre');
-            const auteur = button.getAttribute('data-auteur');
-            const isbn = button.getAttribute('data-isbn');
-            const categorie = button.getAttribute('data-categorie');
+            const title = button.getAttribute('data-title');
 
-            const form = editModal.querySelector('#editForm');
-            form.action = `?action=edit&id=${id}`;
-            editModal.querySelector('#editId').value = id;
-            editModal.querySelector('#editTitre').value = titre;
-            editModal.querySelector('#editAuteur').value = auteur;
-            editModal.querySelector('#editIsbn').value = isbn;
-            editModal.querySelector('#editCategorie').value = categorie;
+            deleteBookModal.querySelector('#deleteBookId').value = id;
+            deleteBookModal.querySelector('#deleteBookTitle').textContent = title;
         });
     }
-
-    // Add copy modal handler
-    const addCopyModal = document.getElementById('addCopyModal');
-    if (addCopyModal) {
-        addCopyModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
-            const titre = button.getAttribute('data-titre');
-
-            addCopyModal.querySelector('#copyBookId').value = id;
-            addCopyModal.querySelector('#copyBookTitle').textContent = titre;
-        });
-    }
-});
 </script>
-

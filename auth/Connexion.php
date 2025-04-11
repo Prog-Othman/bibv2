@@ -4,7 +4,7 @@ require_once __DIR__ . '/../bootstrap.php';
 // Si l'utilisateur est déjà connecté, le rediriger vers son tableau de bord
 if (isset($_SESSION['user'])) {
     if (isset($_SESSION['user']['user_role_id']) && $_SESSION['user']['user_role_id'] != 1) {
-        header('Location: ../admin/dashboard.php');
+        header('Location: ../admin/books.php');
     } else if (isset($_SESSION['user']['user_role_id']) && $_SESSION['user']['user_role_id'] != 3) {
         header('Location: ../user/dashboard.php');
     }
@@ -16,8 +16,10 @@ $error = '';
 
 // Traitement du formulaire de connexion
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_login = filter_input(INPUT_POST, 'user_login',);
-    $user_nom = filter_input(INPUT_POST, 'user_nom', );
+    $user_login = filter_input(INPUT_POST, 'user_login', FILTER_SANITIZE_STRING);
+    $user_nom = filter_input(INPUT_POST, 'user_nom', FILTER_SANITIZE_STRING);
+    
+    
 
     if (empty($user_login) || empty($user_nom)) {
         $error = 'Veuillez remplir tous les champs.';
@@ -58,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Redirection selon le rôle
                     if ($user['user_role_id'] == 1) {
-                        header('Location: ../admin/dashboard.php');
+                        header('Location: ../admin/books.php');
                     } else if ($user['user_role_id'] == 3) {
                         header('Location: ../user/dashboard.php');
                     }

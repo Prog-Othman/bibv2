@@ -3,16 +3,16 @@ require_once '../bootstrap.php';
 require_once '../config/config.php';
 
 // Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['user'])) {
-    header('Location: ../auth/Connexion.php');
-    exit();
-}
+// if (!isset($_SESSION['user'])) {
+//     header('Location: ../auth/Connexion.php');
+//     exit();
+// }
 
-// Vérifier si l'utilisateur est un administrateur
-if ($_SESSION['user']['user_role_id'] != 1) {
-    header('Location: ../user/dashboard.php');
-    exit();
-}
+// // Vérifier si l'utilisateur est un administrateur
+// if ($_SESSION['user']['user_role_id'] != 1) {
+//     header('Location: ../user/dashboard.php');
+//     exit();
+// }
 
 // Connexion à la base de données
 $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");

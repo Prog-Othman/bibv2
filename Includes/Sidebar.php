@@ -88,17 +88,10 @@ $router = new Router();
         <!-- Admin Menu -->
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['user_role_id'] == 1): ?>
             <div class="nav flex-column mt-3">
-                <a class="nav-link <?= $router->isActiveRoute('admin', 'dashboard') ? 'active' : '' ?>" 
-                   href="<?= APP_URL ?>/admin/dashboard.php">
-                    <i class="bi bi-speedometer2"></i> Tableau de bord
-                </a>
-                <a class="nav-link <?= $router->isActiveRoute('admin', 'users') ? 'active' : '' ?>" 
-                   href="<?= APP_URL ?>/admin/users.php">
-                    <i class="bi bi-people"></i> Utilisateurs
-                </a>
+               
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'books') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/books.php">
-                    <i class="bi bi-book"></i> Livres
+                    <i class="bi bi-book"></i> Catalogue
                 </a>
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'loans') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/loans.php">
@@ -107,6 +100,11 @@ $router = new Router();
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'categories') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/categories.php">
                     <i class="bi bi-tags"></i> Catégories
+                </a>
+
+                <a class="nav-link <?= $router->isActiveRoute('admin', 'auteur') ? 'active' : '' ?>" 
+                   href="<?= APP_URL ?>/admin/author.php">
+                    <i class="bi bi-tags"></i> Auteurs
                 </a>
             </div>
         <?php endif; ?>

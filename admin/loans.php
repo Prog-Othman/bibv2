@@ -2,33 +2,42 @@
 require_once '../bootstrap.php';
 require_once '../config/config.php';
 
-// Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['user'])) {
-    header('Location: ../auth/Connexion.php');
-    exit();
-}
 
-// Vérifier si l'utilisateur est un administrateur
-if ($_SESSION['user']['user_role_id'] != 1) {
-    header('Location: ../user/dashboard.php');
-    exit();
-}
+require_once '../config/Database.php';
 
-// Connexion à la base de données
-try {
-    $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
-    error_log("Database connection successful.");
-} catch (PDOException $e) {
-    error_log("Database connection failed: " . $e->getMessage());
-    exit("Database connection error.");
-}
+
+Database::getInstance();
+
+
+global $connexion;
+
+// // Vérifier si l'utilisateur est connecté
+// if (!isset($_SESSION['user'])) {
+//     header('Location: ../auth/Connexion.php');
+//     exit();
+// }
+
+// // Vérifier si l'utilisateur est un administrateur
+// if ($_SESSION['user']['user_role_id'] != 1) {
+//     header('Location: ../user/dashboard.php');
+//     exit();
+// }
+
+// // Connexion à la base de données
+// try {
+//     $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
+//     error_log("Database connection successful.");
+// } catch (PDOException $e) {
+//     error_log("Database connection failed: " . $e->getMessage());
+//     exit("Database connection error.");
+// }
 
 // Traitement de la création d'un nouvel emprunt
 if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Debug: Print POST data
         error_log("POST data: " . print_r($_POST, true));
-        
+
         // Vérifier que tous les champs requis sont présents
         if (!isset($_POST['livre_id']) || !isset($_POST['user_id']) || !isset($_POST['date_retour'])) {
             throw new Exception("Tous les champs sont requis");
@@ -58,7 +67,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_MET
         // Insérer le nouvel emprunt
         $insertQuery = "INSERT INTO n_emprunts (id_exemplaire, id_utilisateur, date_emprunt, date_retour, statut) 
                        VALUES (?, ?, NOW(), ?, 'actif')";
-        $insertStmt = $db->prepare($insertQuery);
+        $insertStmt = $connexion->prepare($insertQuery);
         $result = $insertStmt->execute([
             $exemplaire['id_exemplaire'],
             $_POST['user_id'],
@@ -84,7 +93,7 @@ $debugQuery = "SELECT e.*, u.user_nom, l.titre
                JOIN n_exemplaires ex ON e.id_exemplaire = ex.id_exemplaire 
                JOIN n_livre l ON ex.id_livre = l.id_livre 
                ORDER BY e.date_emprunt DESC";
-$debugStmt = $db->query($debugQuery);
+$debugStmt = $connexion->query($debugQuery);
 error_log("All loans in database: " . print_r($debugStmt->fetchAll(PDO::FETCH_ASSOC), true));
 
 // Récupérer la liste des livres disponibles
@@ -98,7 +107,7 @@ $livresQuery = "SELECT l.id_livre, l.titre, l.isbn, l.auteur,
                 HAVING total_exemplaires > exemplaires_empruntes
                 ORDER BY l.titre";
 
-$livresStmt = $db->prepare($livresQuery);
+$livresStmt = $connexion->prepare($livresQuery);
 $livresStmt->execute();
 $livresDisponibles = $livresStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -136,14 +145,14 @@ error_log("Main query: " . $query);
 error_log("Query params: " . print_r($params, true));
 
 // Compte total pour la pagination
-$countStmt = $db->prepare(str_replace('e.*, u.user_nom', 'COUNT(*) as count', $query));
+$countStmt = $connexion->prepare(str_replace('e.*, u.user_nom', 'COUNT(*) as count', $query));
 $countStmt->execute($params);
 $total = $countStmt->fetch(PDO::FETCH_ASSOC)['count'];
 $totalPages = ceil($total / $limit);
 
 // Ajout de la pagination et du tri à la requête principale
 $query .= " ORDER BY e.date_emprunt DESC LIMIT $limit OFFSET $offset";
-$stmt = $db->prepare($query);
+$stmt = $connexion->prepare($query);
 error_log("Executing main query...");
 $stmt->execute($params);
 $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -151,12 +160,44 @@ error_log("Loans fetched: " . print_r($loans, true));
 
 // Statistiques des emprunts
 $stats = [
-    'total' => $db->query("SELECT COUNT(*) FROM n_emprunts")->fetchColumn(),
-    'actif' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'actif'")->fetchColumn(),
-    'en_retard' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'en_retard'")->fetchColumn(),
-    'termine' => $db->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'termine'")->fetchColumn(),
+    'total' => $connexion->query("SELECT COUNT(*) FROM n_emprunts")->fetchColumn(),
+    'actif' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'actif'")->fetchColumn(),
+    'en_retard' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'en_retard'")->fetchColumn(),
+    'termine' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'termine'")->fetchColumn(),
 ];
 
+
+
+
+$date_debut = $_GET['date_debut'] ?? '';
+$date_fin = $_GET['date_fin'] ?? '';
+$nom_adh = $_GET['nom_adh'] ?? '';
+
+// Construction dynamique
+$sql = "
+     SELECT e.*,CONCAT(etu.etud_nom,' ', etu.etud_prenom) AS nom 
+    FROM n_emprunts e 
+    JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
+    JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id
+    WHERE 1
+";
+$params = [];
+
+if ($date_debut && $date_fin) {
+    $sql .= " AND e.date_emprunt BETWEEN :debut AND :fin";
+    $params[':debut'] = $date_debut . " 00:00:00";
+    $params[':fin'] = $date_fin . " 23:59:59";
+}
+
+if ($nom_adh) {
+    $sql .= " AND (etu.etud_prenom LIKE :nom OR etu.etud_nom LIKE :nom)";
+    $params[':nom'] = "%$nom_adh%";
+}
+
+$sql .= " ORDER BY e.date_emprunt DESC";
+$stmt = $connexion->prepare($sql);
+$stmt->execute($params);
+$emprunts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 // Définir le titre de la page
@@ -168,15 +209,14 @@ require_once '../includes/sidebar.php';
 ?>
 
 <!-- Main Content Area -->
-<div class="content w-100 m-0 pt-5"  id="content">
+<div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="h3 mb-0 text-gray-800">Gestion des emprunts</h1>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#newLoanModal">
-                    <i class="bi bi-plus-circle"></i> Nouvel emprunt
-                </button>
+                <!-- Bouton pour rediriger vers ajouter_emprunt.php -->
+                <a href="ajouter_emprunt.php" class="btn btn-primary">Ajouter un emprunt</a>
             </div>
         </div>
 
@@ -256,7 +296,7 @@ require_once '../includes/sidebar.php';
         </div>
 
         <!-- Search and Filter Section -->
-        <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <!-- <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-body">
                 <form action="" method="GET" class="row g-3">
                     <div class="col-12 col-md-6">
@@ -282,10 +322,10 @@ require_once '../includes/sidebar.php';
                     </div>
                 </form>
             </div>
-        </div>
+        </div> -->
 
         <!-- Loans Table Card -->
-        <div class="card border-0 shadow-sm rounded-3">
+        <!-- <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 text-gray-800">Liste des emprunts</h5>
@@ -331,7 +371,7 @@ require_once '../includes/sidebar.php';
                                                     <?php echo htmlspecialchars($loan['user_nom']); ?>
                                                     <div class="small text-muted">
                                                         <?php echo htmlspecialchars($loan['user_login']); ?>
-                                                        <?php if($loan['statut'] === 'actif' && strtotime($loan['date_emprunt']) > strtotime('-24 hours')): ?>
+                                                        <?php if ($loan['statut'] === 'actif' && strtotime($loan['date_emprunt']) > strtotime('-24 hours')): ?>
                                                             <span class="badge bg-warning text-dark ms-2">Nouveau</span>
                                                         <?php endif; ?>
                                                     </div>
@@ -346,7 +386,7 @@ require_once '../includes/sidebar.php';
                                         </td>
                                         <td>
                                             <?php echo date('d/m/Y', strtotime($loan['date_retour'])); ?>
-                                            <?php if(strtotime($loan['date_retour']) < time() && $loan['statut'] !== 'termine'): ?>
+                                            <?php if (strtotime($loan['date_retour']) < time() && $loan['statut'] !== 'termine'): ?>
                                                 <div class="small text-danger">En retard</div>
                                             <?php endif; ?>
                                         </td>
@@ -403,18 +443,18 @@ require_once '../includes/sidebar.php';
                     </table>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Pagination -->
         <?php if ($totalPages > 1): ?>
-            <nav aria-label="Page navigation" class="mt-4">
+            <!-- <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination justify-content-center">
                     <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page-1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $status; ?>">
+                        <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $status; ?>">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
-                    <?php for ($i = max(1, $page-2); $i <= min($totalPages, $page+2); $i++): ?>
+                    <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
                         <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
                             <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $status; ?>">
                                 <?php echo $i; ?>
@@ -422,13 +462,77 @@ require_once '../includes/sidebar.php';
                         </li>
                     <?php endfor; ?>
                     <li class="page-item <?php echo $page >= $totalPages ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?page=<?php echo $page+1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $status; ?>">
+                        <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $status; ?>">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
                 </ul>
-            </nav>
+            </nav> -->
         <?php endif; ?>
+
+
+        <!-- Formulaire de recherche -->
+        <form method="GET" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Date début</label>
+                <input type="date" name="date_debut" class="form-control" value="<?= htmlspecialchars($date_debut) ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date fin</label>
+                <input type="date" name="date_fin" class="form-control" value="<?= htmlspecialchars($date_fin) ?>">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nom de l'adhérent</label>
+                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Dupont" value="<?= htmlspecialchars($nom_adh) ?>">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary me-2">Rechercher</button>
+                <a href="loans.php" class="btn btn-secondary">Réinitialiser</a>
+            </div>
+        </form>
+
+        <!-- Résultat -->
+        <table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Nom Adhérent</th>
+            <th>Date Emprunt</th>
+            <th>Retour Prévu</th>
+            <th>Retour Effectif</th>
+            <th>Statut</th>
+            <th>Notes</th>
+            <th>Actions</th> 
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (count($emprunts) > 0): ?>
+            <?php 
+                foreach ($emprunts as $emp): ?>
+                <tr>
+                    <td><?= $emp['id_emprunt'] ?></td>
+                    <td><?= htmlspecialchars($emp['nom']) ?></td>
+                    <td><?= $emp['date_emprunt'] ?></td>
+                    <td><?= $emp['date_retour_prevue'] ?></td>
+                    <td><?= $emp['date_retour_effective'] ?? '—' ?></td>
+                    <td><?= ucfirst($emp['statut']) ?></td>
+                    <td><?= htmlspecialchars($emp['notes'] ?? '') ?></td>
+                    <td>
+                        <!-- Bouton pour ouvrir le modal -->
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#returnLoanModal" 
+                                data-id="<?= $emp['id_emprunt'] ?>" 
+                               ">Retour</button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="8" class="text-center text-muted">Aucun emprunt trouvé.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
     </div>
 </div>
 
@@ -448,112 +552,112 @@ require_once '../includes/sidebar.php';
                             <span class="input-group-text bg-light border-end-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text" class="form-control form-control-lg border-start-0" id="bookSearch" 
-                                   placeholder="Rechercher par titre, auteur ou ISBN..." autocomplete="off"
-                                   list="booksList">
+                            <input type="text" class="form-control form-control-lg border-start-0" id="bookSearch"
+                                placeholder="Rechercher par titre, auteur ou ISBN..." autocomplete="off"
+                                list="booksList">
                             <input type="hidden" name="livre_id" id="selectedBookId" required>
                             <datalist id="booksList">
                                 <?php
-                                $booksQuery = $db->query("SELECT id_livre, titre, isbn FROM n_livre ORDER BY titre");
-                                while($book = $booksQuery->fetch(PDO::FETCH_ASSOC)) {
+                                $booksQuery = $connexion->query("SELECT id_livre, titre, isbn FROM n_livre ORDER BY titre");
+                                while ($book = $booksQuery->fetch(PDO::FETCH_ASSOC)) {
                                     echo "<option value='" . htmlspecialchars($book['titre']) . " (ISBN: " . htmlspecialchars($book['isbn']) . ")'>";
                                 }
                                 ?>
                             </datalist>
                         </div>
                         <div id="bookSearchResults" class="list-group position-absolute w-100 shadow-sm d-none"
-                             style="max-height: 200px; overflow-y: auto; z-index: 1000;">
+                            style="max-height: 200px; overflow-y: auto; z-index: 1000;">
                         </div>
                     </div>
                     <script>
-                    document.getElementById('bookSearch').addEventListener('input', function(e) {
-                        const searchTerm = e.target.value;
-                        const resultsDiv = document.getElementById('bookSearchResults');
-                        
-                        if (searchTerm.length < 2) {
-                            resultsDiv.classList.add('d-none');
-                            return;
-                        }
+                        document.getElementById('bookSearch').addEventListener('input', function(e) {
+                            const searchTerm = e.target.value;
+                            const resultsDiv = document.getElementById('bookSearchResults');
 
-                        fetch(`search_books.php?term=${encodeURIComponent(searchTerm)}`)
-                            .then(response => response.json())
-                            .then(books => {
-                                resultsDiv.innerHTML = '';
-                                books.forEach(book => {
-                                    const item = document.createElement('a');
-                                    item.classList.add('list-group-item', 'list-group-item-action');
-                                    item.innerHTML = `${book.titre} (ISBN: ${book.isbn})`;
-                                    item.addEventListener('click', () => {
-                                        document.getElementById('bookSearch').value = book.titre;
-                                        document.getElementById('selectedBookId').value = book.id_livre;
-                                        resultsDiv.classList.add('d-none');
+                            if (searchTerm.length < 2) {
+                                resultsDiv.classList.add('d-none');
+                                return;
+                            }
+
+                            fetch(`search_books.php?term=${encodeURIComponent(searchTerm)}`)
+                                .then(response => response.json())
+                                .then(books => {
+                                    resultsDiv.innerHTML = '';
+                                    books.forEach(book => {
+                                        const item = document.createElement('a');
+                                        item.classList.add('list-group-item', 'list-group-item-action');
+                                        item.innerHTML = `${book.titre} (ISBN: ${book.isbn})`;
+                                        item.addEventListener('click', () => {
+                                            document.getElementById('bookSearch').value = book.titre;
+                                            document.getElementById('selectedBookId').value = book.id_livre;
+                                            resultsDiv.classList.add('d-none');
+                                        });
+                                        resultsDiv.appendChild(item);
                                     });
-                                    resultsDiv.appendChild(item);
+                                    resultsDiv.classList.remove('d-none');
                                 });
-                                resultsDiv.classList.remove('d-none');
-                            });
-                    });
+                        });
 
-                    document.addEventListener('click', function(e) {
-                        if (!e.target.closest('#bookSearch')) {
-                            document.getElementById('bookSearchResults').classList.add('d-none');
-                        }
-                    });
-                    </script>                    
+                        document.addEventListener('click', function(e) {
+                            if (!e.target.closest('#bookSearch')) {
+                                document.getElementById('bookSearchResults').classList.add('d-none');
+                            }
+                        });
+                    </script>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Utilisateur</label>
                         <div class="input-group">
-                            <input type="text" class="form-control form-control-lg" id="userSearch" 
-                                   placeholder="Rechercher un utilisateur..." autocomplete="off"
-                                   list="usersList">
+                            <input type="text" class="form-control form-control-lg" id="userSearch"
+                                placeholder="Rechercher un utilisateur..." autocomplete="off"
+                                list="usersList">
                             <input type="hidden" name="user_id" id="selectedUserId" required>
                             <datalist id="usersList">
                                 <?php
-                                $usersQuery = $db->query("SELECT user_id, user_nom FROM n_utilisateurs ORDER BY user_nom");
-                                while($user = $usersQuery->fetch(PDO::FETCH_ASSOC)) {
+                                $usersQuery = $connexion->query("SELECT user_id, user_nom FROM n_utilisateurs ORDER BY user_nom");
+                                while ($user = $usersQuery->fetch(PDO::FETCH_ASSOC)) {
                                     echo "<option value='" . htmlspecialchars($user['user_nom']) . "'>";
                                 }
                                 ?>
                             </datalist>
                         </div>
-                        <div id="userSearchResults" class="list-group position-absolute w-100 d-none" 
-                             style="max-height: 200px; overflow-y: auto; z-index: 1000;">
+                        <div id="userSearchResults" class="list-group position-absolute w-100 d-none"
+                            style="max-height: 200px; overflow-y: auto; z-index: 1000;">
                         </div>
                     </div>
                     <script>
-                    document.getElementById('userSearch').addEventListener('input', function(e) {
-                        const searchTerm = e.target.value;
-                        const resultsDiv = document.getElementById('userSearchResults');
-                        
-                        if (searchTerm.length < 2) {
-                            resultsDiv.classList.add('d-none');
-                            return;
-                        }
+                        document.getElementById('userSearch').addEventListener('input', function(e) {
+                            const searchTerm = e.target.value;
+                            const resultsDiv = document.getElementById('userSearchResults');
 
-                        fetch(`search_users.php?term=${encodeURIComponent(searchTerm)}`)
-                            .then(response => response.json())
-                            .then(users => {
-                                resultsDiv.innerHTML = '';
-                                users.forEach(user => {
-                                    const item = document.createElement('a');
-                                    item.classList.add('list-group-item', 'list-group-item-action');
-                                    item.innerHTML = `${user.user_nom} (${user.user_login})`;
-                                    item.addEventListener('click', () => {
-                                        document.getElementById('userSearch').value = user.user_nom;
-                                        document.getElementById('selectedUserId').value = user.user_id;
-                                        resultsDiv.classList.add('d-none');
+                            if (searchTerm.length < 2) {
+                                resultsDiv.classList.add('d-none');
+                                return;
+                            }
+
+                            fetch(`search_users.php?term=${encodeURIComponent(searchTerm)}`)
+                                .then(response => response.json())
+                                .then(users => {
+                                    resultsDiv.innerHTML = '';
+                                    users.forEach(user => {
+                                        const item = document.createElement('a');
+                                        item.classList.add('list-group-item', 'list-group-item-action');
+                                        item.innerHTML = `${user.user_nom} (${user.user_login})`;
+                                        item.addEventListener('click', () => {
+                                            document.getElementById('userSearch').value = user.user_nom;
+                                            document.getElementById('selectedUserId').value = user.user_id;
+                                            resultsDiv.classList.add('d-none');
+                                        });
+                                        resultsDiv.appendChild(item);
                                     });
-                                    resultsDiv.appendChild(item);
+                                    resultsDiv.classList.remove('d-none');
                                 });
-                                resultsDiv.classList.remove('d-none');
-                            });
-                    });
+                        });
 
-                    document.addEventListener('click', function(e) {
-                        if (!e.target.closest('#userSearch')) {
-                            document.getElementById('userSearchResults').classList.add('d-none');
-                        }
-                    });
+                        document.addEventListener('click', function(e) {
+                            if (!e.target.closest('#userSearch')) {
+                                document.getElementById('userSearchResults').classList.add('d-none');
+                            }
+                        });
                     </script>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Date de retour prévue</label>
@@ -577,15 +681,15 @@ require_once '../includes/sidebar.php';
                 <h5 class="modal-title text-gray-800">Retour d'emprunt</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="?action=return" method="POST" id="returnForm">
+            <form action="traitement/emprunt.php" method="POST" id="returnForm">
                 <input type="hidden" name="id" id="returnId">
                 <div class="modal-body">
                     <p class="text-muted mb-4">Confirmez-vous le retour du livre : <strong id="returnBookTitle"></strong> ?</p>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">État du livre</label>
                         <select class="form-select form-select-lg" name="etat" required>
-                            <option value="bon">Bon état</option>
-                            <option value="abime">Abîmé</option>
+                            <option value="rendu">rendu</option>
+                            <option value="en_retard">en_retard</option>
                             <option value="perdu">Perdu</option>
                         </select>
                     </div>
@@ -604,19 +708,18 @@ require_once '../includes/sidebar.php';
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Return loan modal handler
-    const returnModal = document.getElementById('returnLoanModal');
-    if (returnModal) {
-        returnModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
-            const titre = button.getAttribute('data-titre');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Return loan modal handler
+        const returnModal = document.getElementById('returnLoanModal');
+        if (returnModal) {
+            returnModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const titre = button.getAttribute('data-titre');
 
-            returnModal.querySelector('#returnId').value = id;
-            returnModal.querySelector('#returnBookTitle').textContent = titre;
-        });
-    }
-});
+                returnModal.querySelector('#returnId').value = id;
+                returnModal.querySelector('#returnBookTitle').textContent = titre;
+            });
+        }
+    });
 </script>
-

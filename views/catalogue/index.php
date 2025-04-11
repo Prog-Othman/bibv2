@@ -181,7 +181,10 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
     <!-- Grille des livres -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
     <?php if (!empty($books)): ?>
-        <?php foreach ($books as $book): ?>
+
+        <?php 
+      
+            foreach ($books as $book):  ?> 
             <!-- Book card HTML here -->
             <div class="col">
                 <div class="card h-100">
@@ -189,20 +192,20 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
                         <i class="fas fa-book fa-4x text-primary"></i>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($book['title']); ?></h5>
+                        <h5 class="card-title"><?php echo htmlspecialchars($book['titre']); ?></h5>
                             <p class="card-text">
                                 <small class="text-muted">
-                                    <i class="fas fa-user me-1"></i><?php echo htmlspecialchars($book['author_name']); ?>
+                                    <i class="fas fa-user me-1"></i><?php echo htmlspecialchars($book['auteur']); ?>
                                 </small>
                             </p>
                             <p class="card-text">
-                                <span class="badge <?php echo $book['available'] ? 'bg-success' : 'bg-danger'; ?>">
-                                    <?php echo $book['available'] ? 'Disponible' : 'Indisponible'; ?>
+                                <span class="badge <?php echo $book['statut'] ? 'bg-success' : 'bg-danger'; ?>">
+                                    <?php echo $book['statut'] ? 'Disponible' : 'Indisponible'; ?>
                                 </span>
                             </p>
-                            <a href="<?php echo APP_URL; ?>/catalogue/view/<?php echo $book['id']; ?>" class="btn btn-primary">
+                            <!-- <a href="<?php echo APP_URL; ?>/catalogue/view/<?php echo $book->id; ?>" class="btn btn-primary">
                                 <i class="fas fa-info-circle me-1"></i>Détails
-                            </a>
+                            </a> -->
                         </div>
                     </div>
                 </div>
@@ -220,10 +223,10 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
                         <i class="fas fa-book fa-4x text-primary"></i>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($book['title']); ?></h5>
+                        <h5 class="card-title"><?php echo htmlspecialchars($book['titre']); ?></h5>
                         <p class="card-text">
                             <small class="text-muted">
-                                <i class="fas fa-user me-1"></i><?php echo htmlspecialchars($book['author_name']); ?>
+                                <i class="fas fa-user me-1"></i><?php echo htmlspecialchars($book['auteur']); ?>
                             </small>
                         </p>
                         <p class="card-text">
@@ -231,9 +234,9 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
                                 <?php echo $book['available'] ? 'Disponible' : 'Indisponible'; ?>
                             </span>
                         </p>
-                        <a href="<?php echo APP_URL; ?>/catalogue/view/<?php echo $book['id']; ?>" class="btn btn-primary">
+                        <!-- <a href="<?php echo APP_URL; ?>/catalogue/view/<?php echo $book['id']; ?>" class="btn btn-primary">
                             <i class="fas fa-info-circle me-1"></i>Détails
-                        </a>
+                        </a> -->
                     </div>
                 </div>
             </div>
