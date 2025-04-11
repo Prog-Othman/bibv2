@@ -46,12 +46,12 @@
                         <?php endif; ?>
                     <?php endif; ?>
                 </ul>
-                <form class="d-flex me-3" action="<?php echo APP_URL; ?>/search" method="GET">
+                <!-- <form class="d-flex me-3" action="<?php echo APP_URL; ?>/search" method="GET">
                     <input class="form-control me-2" type="search" name="q" placeholder="Rechercher un livre..." required>
                     <button class="btn btn-outline-light" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
-                </form>
+                </form> -->
                 <ul class="navbar-nav">
                     <?php if (isset($_SESSION['user'])): ?>
                         <li class="nav-item dropdown">

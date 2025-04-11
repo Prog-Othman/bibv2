@@ -131,7 +131,7 @@ $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
 
 // Définir le titre de la page
-$page_title = "Gestion des livres";
+$page_title = "Gestion Des Ouvrage";
 
 // Inclure le header et le sidebar
 require_once '../includes/header.php';
@@ -143,7 +143,7 @@ require_once '../includes/sidebar.php';
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des livres</h1>
+            <h1 class="h3 mb-0 text-gray-800">Gestion Des Ouvrage</h1>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBookModal">
                     <i class="bi bi-plus-circle"></i> Nouveau livre
@@ -202,7 +202,7 @@ require_once '../includes/sidebar.php';
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gray-800">Liste des livres</h5>
+                    <h5 class="mb-0 text-gray-800">Liste Des Ouvrage</h5>
                     <span class="badge bg-primary rounded-pill">
                         <?php echo $total; ?> livre<?php echo $total > 1 ? 's' : ''; ?>
                     </span>
@@ -327,7 +327,7 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Nouveau livre</h5>
+                <h5 class="modal-title text-gray-800">Nouveau Ouvrage</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/ajout_livre.php" method="POST">

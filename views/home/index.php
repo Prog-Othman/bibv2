@@ -1,18 +1,22 @@
 <div class="row mb-4">
     <div class="col-md-12">
-        <div class="jumbotron bg-light p-5 rounded">
-            <h1 class="display-4 text-dark">Bienvenue à la Bibliothèque</h1>
-            <p class="lead text-dark">Découvrez notre collection de livres et profitez de nos services de prêt.</p>
-            <hr class="my-4 text-dark">
-            <p class="text-dark" >Vous pouvez rechercher des livres, gérer vos emprunts et découvrir nos nouveautés.</p>
-            <a class="btn btn-primary btn-lg" href="<?php echo APP_URL; ?>/views/catalogue/index.php" role="button">
-                <i class="fas fa-book me-2"></i>Parcourir le catalogue
-            </a>
+        <div class="jumbotron bg-light p-5 rounded d-flex align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 text-dark">Bienvenue à la Bibliothèque</h1>
+                <p class="lead text-dark">Découvrez notre collection de livres et profitez de nos services de prêt.</p>
+                <hr class="my-4 text-dark">
+                <p class="text-dark">Vous pouvez rechercher des livres, gérer vos emprunts et découvrir nos nouveautés.</p>
+                <p class="text-dark">Veuillez vous connecter dans votre espace</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <img src="public/images/bibl.png" alt="Bibliothèque" class="img-fluid rounded shadow">
+            </div>
         </div>
     </div>
 </div>
 
-<div class="row">
+
+<!-- <div class="row">
     <div class="col-md-6 border border-0 mb-4">
         <div class="card">
             <div class="card-header bg-primary text-white">
@@ -66,4 +70,4 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->

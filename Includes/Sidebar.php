@@ -91,7 +91,7 @@ $router = new Router();
                
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'books') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/books.php">
-                    <i class="bi bi-book"></i> Catalogue
+                    <i class="bi bi-book"></i> Ouvrage
                 </a>
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'loans') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/loans.php">
