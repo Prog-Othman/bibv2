@@ -1,2 +1,3 @@
 .htaccess
 config/config.php
+error_log
