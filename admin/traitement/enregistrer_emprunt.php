@@ -3,43 +3,62 @@ require_once '../../config/config.php';
 require_once '../../config/Database.php';
 
 Database::getInstance();
-
-// Connexion PDO
 global $connexion;
 
-// Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Récupérer les valeurs du formulaire
-    $id_utilisateur = $_POST['id_utilisateur'];
+    // Type d'emprunteur
+    $type_emprunteur = $_POST['type_emprunteur'];
+
+    // Champs communs
     $id_exemplaire = $_POST['id_exemplaire'];
-    $date_emprunt = $_POST['date_emprunt'] ?: null; // Si vide, ce sera null
+    $date_emprunt = $_POST['date_emprunt'] ?: null;
     $date_retour_prevue = $_POST['date_retour_prevue'];
-    $date_retour_effective = $_POST['date_retour_effective'] ?: null; // Si vide, ce sera null
+    $date_retour_effective = $_POST['date_retour_effective'] ?: null;
     $statut = $_POST['statut'];
     $notes = $_POST['notes'];
+    $utilisateur = isset($_POST['id_utilisateur']) && !empty($_POST['id_utilisateur'])? $_POST['id_utilisateur']: null;
 
-    // Préparer la requête SQL pour l'insertion dans la table n_emprunts
-    $sql = "INSERT INTO n_emprunts (id_utilisateur, id_exemplaire, date_emprunt, date_retour_prevue, date_retour_effective, statut, notes)
-            VALUES (:id_utilisateur, :id_exemplaire, :date_emprunt, :date_retour_prevue, :date_retour_effective, :statut, :notes)";
 
-    // Préparer la requête avec des paramètres
-    $stmt = $connexion->prepare($sql);
+   
+        // Externe
+        $nom_externe = $_POST['nom_externe'];
+        $tel_externe = $_POST['tel_externe'];
+        $email_externe = $_POST['email_externe'];
+        $identite_externe = $_POST['identite_externe'];
 
-    // Lier les paramètres
-    $stmt->bindValue(':id_utilisateur', $id_utilisateur, PDO::PARAM_INT);
-    $stmt->bindValue(':id_exemplaire', $id_exemplaire, PDO::PARAM_INT);
-    $stmt->bindValue(':date_emprunt', $date_emprunt ? $date_emprunt : null, PDO::PARAM_STR);
-    $stmt->bindValue(':date_retour_prevue', $date_retour_prevue, PDO::PARAM_STR);
-    $stmt->bindValue(':date_retour_effective', $date_retour_effective ? $date_retour_effective : null, PDO::PARAM_STR);
-    $stmt->bindValue(':statut', $statut, PDO::PARAM_STR);
-    $stmt->bindValue(':notes', $notes, PDO::PARAM_STR);
+        $sql = "INSERT INTO n_emprunts (
+                    id_utilisateur, id_exemplaire, date_emprunt, date_retour_prevue, 
+                    date_retour_effective, statut, notes, 
+                    nom_externe, tel_externe, email_externe, identite_externe
+                ) VALUES (
+                    :utilisateur, :id_exemplaire, :date_emprunt, :date_retour_prevue, 
+                    :date_retour_effective, :statut, :notes,
+                    :nom_externe, :tel_externe, :email_externe, :identite_externe
+                )";
 
-    // Exécuter la requête
-    if ($stmt->execute()) {
+        $stmt = $connexion->prepare($sql);
+        $stmt->bindValue(':utilisateur', $utilisateur, PDO::PARAM_INT);
+
+        $stmt->bindValue(':id_exemplaire', $id_exemplaire, PDO::PARAM_INT);
+        $stmt->bindValue(':date_emprunt', $date_emprunt, PDO::PARAM_STR);
+        $stmt->bindValue(':date_retour_prevue', $date_retour_prevue, PDO::PARAM_STR);
+        $stmt->bindValue(':date_retour_effective', $date_retour_effective, PDO::PARAM_STR);
+        $stmt->bindValue(':statut', $statut, PDO::PARAM_STR);
+        $stmt->bindValue(':notes', $notes, PDO::PARAM_STR);
+        $stmt->bindValue(':nom_externe', $nom_externe, PDO::PARAM_STR);
+        $stmt->bindValue(':tel_externe', $tel_externe, PDO::PARAM_STR);
+        $stmt->bindValue(':email_externe', $email_externe, PDO::PARAM_STR);
+        $stmt->bindValue(':identite_externe', $identite_externe, PDO::PARAM_STR);
+    
+
+    // Exécution
+    if ($stmt->execute()) { 
         header('Location: ../loans.php');
-        exit(); // Assurez-vous que le script s'arrête après la redirection
+        exit();
     } else {
-        echo "Erreur lors de l'enregistrement de l'emprunt: " . $stmt->errorInfo()[2];
+        echo "Erreur lors de l'enregistrement de l'emprunt : " . $stmt->errorInfo()[2];
     }
+
+  
 }
 ?>

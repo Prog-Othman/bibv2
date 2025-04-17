@@ -5,17 +5,17 @@ require_once '../config/Database.php';
 
 
 Database::getInstance();
-// // Vérifier si l'utilisateur est connecté
-// if (!isset($_SESSION['user'])) {
-//     header('Location: ../auth/Connexion.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user'])) {
+    header('Location: ../auth/Connexion.php');
+    exit();
+}
 
-// // Vérifier si l'utilisateur est un administrateur
-// if ($_SESSION['user']['user_role_id'] != 1) {
-//     header('Location: ../user/dashboard.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est un administrateur
+if ($_SESSION['user']['user_role_id'] != 1) {
+    header('Location: ../user/dashboard.php');
+    exit();
+}
 
 global $connexion;
 
@@ -56,6 +56,14 @@ $stmt->execute([':statut' => $statut]);
 // Récupération des résultats
 $exemplaires = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$typesEmprunteur = "SELECT * FROM n_type_emprunteur";
+
+// Préparation de la requête SQL
+$stmt = $connexion->prepare($typesEmprunteur);
+$stmt->execute();
+
+// Récupération des résultats
+$typesEmprunteurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
@@ -66,92 +74,129 @@ require_once '../includes/sidebar.php';
 ?>
 
 <!-- Main Content Area -->
-<div class="content w-100 m-0 pt-5"  id="content">
+<div class="content w-100 m-0 pt-5" id="content">
+  <div class="container-fluid p-4">
+    <!-- Header Section -->
+
     <div class="container-fluid p-4">
-        <!-- Header Section -->
-        
-        <div class="container-fluid p-4">
-<!-- Form Section -->
-<div class="card border-0 shadow-sm rounded-3 mb-4">
-  <div class="card-body">
-    <h2 class="mb-4">Formulaire d'emprunt</h2>
+      <!-- Form Section -->
+      <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body">
+          <h2 class="mb-4">Formulaire d'emprunt</h2>
 
-    <form method="POST" action="traitement/enregistrer_emprunt.php">
-      <!-- Utilisateur -->
-      <div class="mb-3">
-          <label for="id_utilisateur" class="form-label">Liste des utilisateurs</label>
-          <select class="form-control" id="id_utilisateur" name="id_utilisateur" required>
-              <option value="">Sélectionnez un utilisateur</option>
-              <?php foreach ($utilisateurs as $utilisateur): ?>
-                  <option value="<?php echo $utilisateur['user_id']; ?>">
-                      <?php echo htmlspecialchars($utilisateur['user_nom']) . ' - ' . htmlspecialchars($utilisateur['etud_nom']) . ' ' . htmlspecialchars($utilisateur['etud_prenom']); ?>
+          <form method="POST" action="traitement/enregistrer_emprunt.php">
+            <!-- Utilisateur -->
+            <!-- Liste déroulante des types d'emprunteur -->
+            <div class="mb-3">
+              <label for="type_emprunteur" class="form-label">Type d'emprunteur</label>
+              <select class="form-control" id="type_emprunteur" name="type_emprunteur" required>
+                <option value="">Sélectionnez un type</option>
+                <?php foreach ($typesEmprunteurs as $type): ?>
+                  <option value="<?php echo $type['role_id']; ?>">
+                    <?php echo htmlspecialchars($type['nom']); ?>
                   </option>
-              <?php endforeach; ?>
-          </select>
-      </div>
-      <!-- Exemplaire -->
-      <div class="mb-3">
-          <label for="id_exemplaire" class="form-label">ID Exemplaire</label>
-          <select class="form-control" id="id_exemplaire" name="id_exemplaire" required>
-              <option value="">Sélectionnez un exemplaire</option>
-              <?php foreach ($exemplaires as $exemplaire): ?>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <!-- Liste déroulante des utilisateurs liés au type sélectionné -->
+            <!-- Zone pour les utilisateurs internes (entourée par un conteneur avec un ID) -->
+            <div id="zone_utilisateur_interne">
+              <div class="mb-3">
+                <label for="id_utilisateur" class="form-label">Liste des demandeurs</label>
+                <select class="form-control" id="id_utilisateur" name="id_utilisateur">
+                  <option value="">Sélectionnez un demandeur</option>
+                </select>
+              </div>
+            </div>
+
+
+
+
+            <!-- Zone pour les emprunteurs externes (masquée par défaut) -->
+            <div id="zone_externe" style="display: none;">
+              <div class="mb-3">
+                <label for="nom_externe" class="form-label">Nom complet</label>
+                <input type="text" class="form-control" id="nom_externe" name="nom_externe">
+              </div>
+              <div class="mb-3">
+                <label for="tel_externe" class="form-label">Téléphone</label>
+                <input type="text" class="form-control" id="tel_externe" name="tel_externe">
+              </div>
+              <div class="mb-3">
+                <label for="email_externe" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email_externe" name="email_externe">
+              </div>
+              <div class="mb-3">
+                <label for="identite_externe" class="form-label">CNI ou Passeport</label>
+                <input type="text" class="form-control" id="identite_externe" name="identite_externe">
+              </div>
+            </div>
+
+
+            <!-- Exemplaire -->
+            <div class="mb-3">
+              <label for="id_exemplaire" class="form-label">ID Exemplaire</label>
+              <select class="form-control" id="id_exemplaire" name="id_exemplaire" required>
+                <option value="">Sélectionnez un exemplaire</option>
+                <?php foreach ($exemplaires as $exemplaire): ?>
                   <option value="<?php echo $exemplaire['id_exemplaire']; ?>">
-                      <?php echo htmlspecialchars($exemplaire['code_barre']) . ' - ' . htmlspecialchars($exemplaire['statut']) . ' (' . htmlspecialchars($exemplaire['etat']) . ')'; ?>
+                    <?php echo htmlspecialchars($exemplaire['titre']) . ' - ' . $exemplaire['code_barre'] . ' - ' . htmlspecialchars($exemplaire['statut']) . ' (' . htmlspecialchars($exemplaire['etat']) . ')'; ?>
                   </option>
-              <?php endforeach; ?>
-          </select>
+                <?php endforeach; ?>
+              </select>
+            </div>
+
+            <!-- Date emprunt (auto gérée, sauf si modif) -->
+            <div class="mb-3">
+              <label for="date_emprunt" class="form-label">Date d'emprunt (optionnel)</label>
+              <input type="date" class="form-control" id="date_emprunt" name="date_emprunt">
+            </div>
+
+            <!-- Date retour prévue -->
+            <div class="mb-3">
+              <label for="date_retour_prevue" class="form-label">Date de retour prévue</label>
+              <input type="date" class="form-control" id="date_retour_prevue" name="date_retour_prevue" required>
+            </div>
+
+            <!-- Date retour effective -->
+            <div class="mb-3">
+              <label for="date_retour_effective" class="form-label">Date de retour effective (si déjà rendu)</label>
+              <input type="date" class="form-control" id="date_retour_effective" name="date_retour_effective">
+            </div>
+
+            <!-- Statut -->
+            <div class="mb-3">
+              <label for="statut" class="form-label">Statut</label>
+              <select class="form-select" id="statut" name="statut">
+                <option value="actif" selected>Actif</option>
+                <option value="rendu">Rendu</option>
+                <option value="en_retard">En retard</option>
+                <option value="perdu">Perdu</option>
+              </select>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-3">
+              <label for="notes" class="form-label">Notes</label>
+              <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Notes supplémentaires (optionnel)"></textarea>
+            </div>
+
+            <!-- Boutons -->
+            <div class="d-flex justify-content-between">
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+              <button type="reset" class="btn btn-secondary">Réinitialiser</button>
+            </div>
+
+          </form>
+        </div>
       </div>
 
-      <!-- Date emprunt (auto gérée, sauf si modif) -->
-      <div class="mb-3">
-        <label for="date_emprunt" class="form-label">Date d'emprunt (optionnel)</label>
-        <input type="date" class="form-control" id="date_emprunt" name="date_emprunt">
-      </div>
-
-      <!-- Date retour prévue -->
-      <div class="mb-3">
-        <label for="date_retour_prevue" class="form-label">Date de retour prévue</label>
-        <input type="date" class="form-control" id="date_retour_prevue" name="date_retour_prevue" required>
-      </div>
-
-      <!-- Date retour effective -->
-      <div class="mb-3">
-        <label for="date_retour_effective" class="form-label">Date de retour effective (si déjà rendu)</label>
-        <input type="date" class="form-control" id="date_retour_effective" name="date_retour_effective">
-      </div>
-
-      <!-- Statut -->
-      <div class="mb-3">
-        <label for="statut" class="form-label">Statut</label>
-        <select class="form-select" id="statut" name="statut">
-          <option value="actif" selected>Actif</option>
-          <option value="rendu">Rendu</option>
-          <option value="en_retard">En retard</option>
-          <option value="perdu">Perdu</option>
-        </select>
-      </div>
-
-      <!-- Notes -->
-      <div class="mb-3">
-        <label for="notes" class="form-label">Notes</label>
-        <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Notes supplémentaires (optionnel)"></textarea>
-      </div>
-
-      <!-- Boutons -->
-      <div class="d-flex justify-content-between">
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
-        <button type="reset" class="btn btn-secondary">Réinitialiser</button>
-      </div>
-
-    </form>
-  </div>
-</div>
-
-</div>
-    
-    
-      
     </div>
+
+
+
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -159,11 +204,53 @@ require_once '../includes/sidebar.php';
 <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet">
 
 <script>
-    // Activer Select2 
-    $(document).ready(function() {
-        $('#id_utilisateur').select2({
-            placeholder: 'Sélectionnez un utilisateur',
-            allowClear: true
-        });
+  // Activer Select2 
+  $(document).ready(function() {
+    $('#id_utilisateur').select2({
+      placeholder: 'Sélectionnez un utilisateur',
+      allowClear: true
     });
+  });
+
+
+  document.getElementById('type_emprunteur').addEventListener('change', function() {
+    const roleId = this.value;
+
+    const zoneInterne = document.getElementById('zone_utilisateur_interne');
+    const zoneExterne = document.getElementById('zone_externe');
+    const select = document.getElementById('id_utilisateur');
+
+    if (roleId === '') {
+      zoneInterne.style.display = 'none';
+      zoneExterne.style.display = 'block';
+      select.innerHTML = '<option value="">Sélectionnez un demandeur</option>';
+    } else if (roleId) {
+      zoneInterne.style.display = 'block';
+      zoneExterne.style.display = 'none';
+
+      fetch('get_utilisateurs_by_role.php?role_id=' + roleId)
+        .then(response => response.json())
+        .then(data => {
+          select.innerHTML = '<option value="">Sélectionnez un demandeur</option>';
+          data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = `${item.nom}`;
+            select.appendChild(option);
+          });
+
+          if ($(select).hasClass('select2-hidden-accessible')) {
+            $(select).select2('destroy');
+          }
+          $(select).select2({
+            placeholder: 'Sélectionnez un demandeur',
+            allowClear: true
+          });
+        });
+    } else {
+      zoneInterne.style.display = 'none';
+      zoneExterne.style.display = 'none';
+      select.innerHTML = '<option value="">Sélectionnez un demandeur</option>';
+    }
+  });
 </script>

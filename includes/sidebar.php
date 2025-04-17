@@ -91,7 +91,7 @@ $router = new Router();
                
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'books') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/books.php">
-                    <i class="bi bi-book"></i> Ouvrage
+                    <i class="bi bi-book"></i> Ouvrages
                 </a>
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'loans') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/loans.php">
@@ -104,7 +104,12 @@ $router = new Router();
 
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'auteur') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/author.php">
-                    <i class="bi bi-tags"></i> Auteurs
+                    <i class="bi bi-person-lines-fill"></i> Auteurs
+                </a>
+
+                <a class="nav-link <?= $router->isActiveRoute('admin', 'irregularite') ? 'active' : '' ?>" 
+                   href="<?= APP_URL ?>/admin/irregularite.php">
+                   <i class="bi bi-exclamation-triangle-fill"></i> Irrégularité
                 </a>
             </div>
         <?php endif; ?>

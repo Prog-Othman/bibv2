@@ -90,10 +90,16 @@ $limit = 10;
 $offset = ($page - 1) * $limit;
 
 // Recherche
+$titre = $_GET['titre'] ?? '';
+$mot_cle = $_GET['mot_cle'] ?? '';
+$resume = $_GET['resume'] ?? '';
+$isbn = $_GET['isbn'] ?? '';
+$id_livre = $_GET['id_livre'] ?? '';
+$categoryFilter = $_GET['category'] ?? 0;
+
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 $categoryFilter = isset($_GET['category']) ? (int)$_GET['category'] : 0;
 
-// Construction de la requête
 $query = "SELECT l.*, c.nom_categorie, aut.*,
          (SELECT COUNT(*) FROM n_exemplaires WHERE id_livre = l.id_livre) as total_copies,
          (SELECT COUNT(*) FROM n_exemplaires e 
@@ -101,15 +107,31 @@ $query = "SELECT l.*, c.nom_categorie, aut.*,
           WHERE e.id_livre = l.id_livre AND (em.statut = 'actif' OR em.statut = 'en_retard')) as copies_borrowed
          FROM n_livre l
          LEFT JOIN n_categorie_livres c ON l.category_id = c.id_categorie
-         join n_author aut on l.author_id = aut.author_id
+         JOIN n_author aut ON l.author_id = aut.author_id
          WHERE 1=1";
 
 $params = [];
-if (!empty($search)) {
-    $query .= " AND (l.titre LIKE ? OR l.auteur LIKE ? OR l.isbn LIKE ? OR l.mots_cle LIKE ? OR l.resume LIKE ?)";
-    $params = array_merge($params, ["%$search%", "%$search%", "%$search%", "%$search%", "%$search%"]);
-}
 
+if (!empty($titre)) {
+    $query .= " AND l.titre LIKE ?";
+    $params[] = "%$titre%";
+}
+if (!empty($mot_cle)) {
+    $query .= " AND l.mots_cle LIKE ?";
+    $params[] = "%$mot_cle%";
+}
+if (!empty($resume)) {
+    $query .= " AND l.resume LIKE ?";
+    $params[] = "%$resume%";
+}
+if (!empty($isbn)) {
+    $query .= " AND l.isbn LIKE ?";
+    $params[] = "%$isbn%";
+}
+if (!empty($id_livre)) {
+    $query .= " AND l.id_livre = ?";
+    $params[] = $id_livre;
+}
 if ($categoryFilter > 0) {
     $query .= " AND l.category_id = ?";
     $params[] = $categoryFilter;
@@ -132,7 +154,7 @@ $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
 
 // Définir le titre de la page
-$page_title = "Gestion Des Ouvrage";
+$page_title = "Gestion Des Ouvrages";
 
 // Inclure le header et le sidebar
 require_once '../includes/header.php';
@@ -144,10 +166,10 @@ require_once '../includes/sidebar.php';
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion Des Ouvrage</h1>
+            <h1 class="h3 mb-0 text-gray-800">Gestion Des Ouvrages</h1>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBookModal">
-                    <i class="bi bi-plus-circle"></i> Nouveau livre
+                    <i class="bi bi-plus-circle"></i> Nouveau Ouvrage
                 </button>
             </div>
         </div>
@@ -170,32 +192,36 @@ require_once '../includes/sidebar.php';
         <!-- Search and Filter Section -->
         <div class="card border-0 shadow-sm rounded-3 mb-4">
             <div class="card-body">
-                <form action="" method="GET" class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0">
-                                <i class="bi bi-search text-muted"></i>
-                            </span>
-                            <input type="text" class="form-control border-start-0" name="search"
-                                placeholder="Rechercher par titre, auteur ou ISBN..."
-                                value="<?php echo htmlspecialchars($search); ?>">
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4">
-                        <select class="form-select" name="category">
-                            <option value="0">Toutes les catégories</option>
-                            <?php foreach ($categories as $category): ?>
-                                <option value="<?php echo $category['id_categorie']; ?>"
-                                    <?php echo $categoryFilter == $category['id_categorie'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($category['nom_categorie']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-primary w-100">Filtrer</button>
-                    </div>
-                </form>
+            <form action="" method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="titre" placeholder="Titre de l'ouvrage" value="<?php echo htmlspecialchars($titre ?? ''); ?>">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="mot_cle" placeholder="Mot-clé" value="<?php echo htmlspecialchars($mot_cle ?? ''); ?>">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="resume" placeholder="Partie du résumé" value="<?php echo htmlspecialchars($resume ?? ''); ?>">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="isbn" placeholder="ISBN" value="<?php echo htmlspecialchars($isbn ?? ''); ?>">
+                </div>
+                <div class="col-md-4">
+                    <input type="number" class="form-control" name="id_livre" placeholder="ID du livre" value="<?php echo htmlspecialchars($id_livre ?? ''); ?>">
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" name="category">
+                        <option value="0">Toutes les catégories</option>
+                        <?php foreach ($categories as $category): ?>
+                            <option value="<?php echo $category['id_categorie']; ?>" <?php echo ($categoryFilter == $category['id_categorie']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($category['nom_categorie']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                </div>
+            </form>
             </div>
         </div>
 

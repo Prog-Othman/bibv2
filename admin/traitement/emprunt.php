@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             notes = ? 
                         WHERE id_emprunt = ?";
         $updateStmt = $connexion->prepare($updateQuery);
-        $result = $updateStmt->execute([$commentaire, $etat,$idEmprunt]);
+        $result = $updateStmt->execute([$etat,$commentaire,$idEmprunt]);
 
         // Vérifier si la mise à jour a réussi
         if (!$result) {

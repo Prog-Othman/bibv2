@@ -162,8 +162,8 @@ error_log("Loans fetched: " . print_r($loans, true));
 $stats = [
     'total' => $connexion->query("SELECT COUNT(*) FROM n_emprunts")->fetchColumn(),
     'actif' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'actif'")->fetchColumn(),
-    'en_retard' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'en_retard'")->fetchColumn(),
-    'termine' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'termine'")->fetchColumn(),
+    'en_retard' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE date_retour_prevue < NOW()")->fetchColumn(),
+    'termine' => $connexion->query("SELECT COUNT(*) FROM n_emprunts WHERE statut = 'rendu'")->fetchColumn(),
 ];
 
 
@@ -175,11 +175,17 @@ $nom_adh = $_GET['nom_adh'] ?? '';
 
 // Construction dynamique
 $sql = "
-     SELECT e.*,CONCAT(etu.etud_nom,' ', etu.etud_prenom) AS nom 
-    FROM n_emprunts e 
-    JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
-    JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id
-    WHERE 1
+   SELECT 
+    e.*,
+    CASE 
+        WHEN e.id_utilisateur IS NULL THEN e.nom_externe
+        ELSE CONCAT(etu.etud_nom, ' ', etu.etud_prenom)
+    END AS nom
+FROM n_emprunts e
+LEFT JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
+LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id
+WHERE 1
+
 ";
 $params = [];
 
@@ -190,7 +196,8 @@ if ($date_debut && $date_fin) {
 }
 
 if ($nom_adh) {
-    $sql .= " AND (etu.etud_prenom LIKE :nom OR etu.etud_nom LIKE :nom)";
+    $sql .= " AND ((etu.etud_prenom LIKE :nom OR etu.etud_nom LIKE :nom)
+    OR (e.nom_externe LIKE :nom)) ";
     $params[':nom'] = "%$nom_adh%";
 }
 
@@ -483,7 +490,7 @@ require_once '../includes/sidebar.php';
             </div>
             <div class="col-md-4">
                 <label class="form-label">Nom de l'adhérent</label>
-                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Dupont" value="<?= htmlspecialchars($nom_adh) ?>">
+                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Ali" value="<?= htmlspecialchars($nom_adh) ?>">
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2">Rechercher</button>
