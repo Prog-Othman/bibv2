@@ -2,6 +2,9 @@
 require_once '../bootstrap.php';
 require_once '../config/config.php';
 require_once '../config/Database.php';
+
+ob_start(); 
+
 Database::getInstance();
 global $connexion;
 
@@ -40,6 +43,8 @@ switch ($roleId) {
 $stmt = $connexion->prepare($sql);
 $stmt->execute();
 $demandeurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+ob_end_clean(); 
 
 header('Content-Type: application/json');
 echo json_encode($demandeurs);
