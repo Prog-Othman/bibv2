@@ -20,14 +20,31 @@ if ($_SESSION['user']['user_role_id'] != 1) {
     exit();
 }
 
-// Requête des emprunts en retard de plus de 2 mois
+// Pagination
+$parPage = 10;
+$page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+$offset = ($page - 1) * $parPage;
+
+// Total des emprunts en retard
+$countSql = "
+    SELECT COUNT(*) as total
+    FROM n_emprunts e
+    WHERE e.statut = 'en_retard' AND DATE(e.date_retour_prevue) < :limite
+";
+$countStmt = $connexion->prepare($countSql);
+$countStmt->bindValue(':limite', $limite);
+$countStmt->execute();
+$total = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
+$pagesTotal = ceil($total / $parPage);
+
+// Requête principale
 $sql = "
     SELECT 
         e.id_emprunt,
         e.date_emprunt,
         e.date_retour_prevue,
         e.id_exemplaire,
-        concat(l.titre,' ',exm.code_barre) AS nom_livre,
+        CONCAT(l.titre, ' ', exm.code_barre) AS nom_livre,
         e.statut,
         e.notes,
         e.id_utilisateur,
@@ -41,10 +58,13 @@ $sql = "
     WHERE e.statut = 'en_retard'
       AND DATE(e.date_retour_prevue) < :limite
     ORDER BY e.date_retour_prevue ASC
+    LIMIT :limit OFFSET :offset
 ";
 
 $stmt = $connexion->prepare($sql);
 $stmt->bindValue(':limite', $limite);
+$stmt->bindValue(':limit', $parPage, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $retards = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -68,11 +88,11 @@ require_once '../includes/sidebar.php';
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-8">
                 <label class="form-label">Nom de l'adhérent</label>
-                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Ali" value="<?= htmlspecialchars($nom_adh ?? '') ?>">
+                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Ali" value="<?= htmlspecialchars($_GET['nom_adh'] ?? '') ?>">
             </div>
             <div class="col-md-2 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2">Rechercher</button>
-                <a href="irregularite.php" class="btn btn-secondary">Réinitialiser</a>
+                <a href="retards.php" class="btn btn-secondary">Réinitialiser</a>
             </div>
         </form>
 
@@ -114,6 +134,19 @@ require_once '../includes/sidebar.php';
                     <?php endforeach; ?>
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <?php if ($pagesTotal > 1): ?>
+                <nav>
+                    <ul class="pagination">
+                        <?php for ($i = 1; $i <= $pagesTotal; $i++): ?>
+                            <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                                <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                            </li>
+                        <?php endfor; ?>
+                    </ul>
+                </nav>
+            <?php endif; ?>
         <?php else: ?>
             <div class="alert alert-info">Aucun emprunt en retard de plus de 2 mois.</div>
         <?php endif; ?>
