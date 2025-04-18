@@ -175,17 +175,19 @@ $nom_adh = $_GET['nom_adh'] ?? '';
 
 // Construction dynamique
 $sql = "
-   SELECT 
+SELECT 
     e.*,
     CASE 
         WHEN e.id_utilisateur IS NULL THEN e.nom_externe
-        ELSE CONCAT(etu.etud_nom, ' ', etu.etud_prenom)
+        WHEN etu.etud_id IS NOT NULL THEN CONCAT(etu.etud_nom, ' ', etu.etud_prenom)
+        WHEN p.prof_id IS NOT NULL THEN CONCAT(p.prof_nom, ' ', p.prof_prenom)
+        ELSE 'Inconnu'
     END AS nom
 FROM n_emprunts e
 LEFT JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
-LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id
+LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id AND u.user_role_id = 3
+LEFT JOIN prof p ON u.user_id = p.prof_user_id AND u.user_role_id = 5
 WHERE 1
-
 ";
 $params = [];
 
