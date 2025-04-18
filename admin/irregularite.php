@@ -49,15 +49,21 @@ $sql = "
         e.notes,
         e.id_utilisateur,
         u.user_bib_status,
-        COALESCE(CONCAT(etu.etud_nom, ' ', etu.etud_prenom), e.nom_externe) AS nom_emprunteur
+        CASE 
+            WHEN e.id_utilisateur IS NULL THEN e.nom_externe
+            WHEN etu.etud_id IS NOT NULL THEN CONCAT(etu.etud_nom, ' ', etu.etud_prenom)
+            WHEN p.prof_id IS NOT NULL THEN CONCAT(p.prof_nom, ' ', p.prof_prenom)
+            ELSE 'Inconnu'
+        END AS nom_emprunteur
     FROM n_emprunts e
     JOIN n_exemplaires exm ON e.id_exemplaire = exm.id_exemplaire
     JOIN n_livre l ON exm.id_livre = l.id_livre 
     LEFT JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
-    LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id
+    LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id AND u.user_role_id = 3
+    LEFT JOIN prof p ON u.user_id = p.prof_user_id AND u.user_role_id = 5
     WHERE e.statut = 'en_retard'
-      AND DATE(e.date_retour_prevue) < :limite
-    ORDER BY e.date_retour_prevue ASC
+    AND DATE(e.date_retour_prevue) < :limite
+    ORDER BY e.date_retour_prevue ASC;
     LIMIT :limit OFFSET :offset
 ";
 
@@ -118,8 +124,8 @@ require_once '../includes/sidebar.php';
                             <td>
                                 <?php if (!empty($emprunt['id_utilisateur'])): ?>
                                     <form method="POST" action="traitement/bloquer_utilisateur.php"
-                                          onsubmit="return confirm('Voulez-vous vraiment <?= intval($emprunt['user_bib_status']) ? 'débloquer' : 'bloquer' ?> cet utilisateur ?');"
-                                          style="display: inline;">
+                                        onsubmit="return confirm('Voulez-vous vraiment <?= intval($emprunt['user_bib_status']) ? 'débloquer' : 'bloquer' ?> cet utilisateur ?');"
+                                        style="display: inline;">
                                         <input type="hidden" name="user_id" value="<?= $emprunt['id_utilisateur'] ?>">
                                         <input type="hidden" name="action" value="<?= intval($emprunt['user_bib_status']) ? 'debloquer' : 'bloquer' ?>">
                                         <button type="submit" class="btn btn-<?= intval($emprunt['user_bib_status']) ? 'success' : 'danger' ?> btn-sm">
