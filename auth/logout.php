@@ -1,10 +1,11 @@
 <?php
 include '../bootstrap.php';
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 session_destroy();
 
-// Ne pas afficher avant cette ligne
 header("Location: Connexion.php");
 exit;
-?>
