@@ -117,13 +117,13 @@ $router = new Router();
         <!-- User Menu -->
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['user_role_id'] == 3): ?>
             <div class="nav flex-column mt-3">
-                <a class="nav-link" href="http://localhost/bibv2/user/dashboard.php">
+                <a class="nav-link" href="<?= APP_URL ?>/user/dashboard.php">
                     <i class="bi bi-speedometer2"></i> Tableau de bord
                 </a>
                 <a class="nav-link" href="<?php echo APP_URL; ?>/user/emprunts.php" onclick="return true;">
                     <i class="bi bi-book"></i> Mes emprunts
                 </a>
-                <a class="nav-link" href="http://localhost/bibv2/user/profile.php">
+                <a class="nav-link" href="<?= APP_URL ?>/user/profile.php">
                     <i class="bi bi-person"></i> Mon profil
                 </a>
             </div>

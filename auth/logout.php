@@ -1,16 +1,10 @@
 <?php
-require_once __DIR__ . '/../bootstrap.php';
+include '../bootstrap.php';
 
-
-
-// Détruire toutes les variables de session
-$_SESSION = array();
-
-// Détruire la session
+session_start();
 session_destroy();
 
-// Rediriger vers la page de connexion
-header('Location: ' . APP_URL . '/auth/Connexion.php');
-exit();
+// Ne pas afficher avant cette ligne
+header("Location: Connexion.php");
+exit;
 ?>
-
