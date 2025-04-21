@@ -12,4 +12,3 @@ ini_set('display_errors', 1);
 
 // Instantiate the router
 $router = new Router();
-?> 
