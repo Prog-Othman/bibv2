@@ -88,7 +88,7 @@ $totalPages = ceil(count($books) / ITEMS_PER_PAGE); // Define ITEMS_PER_PAGE in 
                     </li>
                     <?php if (isset($_SESSION['user'])): ?>
                         <li class="nav-item">
-                            <a class="nav-link" href="<?php echo APP_URL; ?>/loans">
+                            <a class="nav-link" href="<?php echo APP_URL; ?>/users/emprunts.php">
                                 <i class="fas fa-book-reader me-1"></i>Mes emprunts
                             </a>
                         </li>

@@ -7,16 +7,7 @@ global $connexion;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        // Vérifier que tous les champs nécessaires sont présents
-        if (
-            empty($_POST['id']) ||
-            empty($_POST['titre']) ||
-            empty($_POST['auteur']) ||
-            empty($_POST['isbn']) ||
-            empty($_POST['categorie'])
-        ) {
-            throw new Exception("Tous les champs sont requis.");
-        }
+      
 
         // Récupération des données du formulaire
         $id = $_POST['id'];

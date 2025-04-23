@@ -53,6 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Exécution
     if ($stmt->execute()) { 
+        // Mise à jour du statut de l'exemplaire à "emprunte"
+        $updateExemplaire = "UPDATE n_exemplaires SET statut = 'emprunte' WHERE id_exemplaire = :id_exemplaire";
+        $stmtUpdate = $connexion->prepare($updateExemplaire);
+        $stmtUpdate->bindValue(':id_exemplaire', $id_exemplaire, PDO::PARAM_INT);
+        $stmtUpdate->execute();
+
         header('Location: ../loans.php');
         exit();
     } else {

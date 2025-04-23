@@ -7,7 +7,14 @@ if (session_status() === PHP_SESSION_NONE) {
 // Load config and core files
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../core/Router.php';
-require_once __DIR__ . '/../models/Book.php';
+require_once '../config/Database.php';
+
+Database::getInstance();
+
+
+global $connexion;
+
+// require_once __DIR__ . '/../models/Book.php';
 
 
 
@@ -31,21 +38,21 @@ require_once '../bootstrap.php';
 
 // Récupérer les informations de l'utilisateur
 $user_id = $_SESSION['user']['id'];
-$db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
+
 
 // Récupérer les emprunts en cours
-$query_emprunts = $db->prepare("
+$query_emprunts = $connexion->prepare("
     SELECT e.*, ex.code_barre, l.titre, l.isbn
     FROM n_emprunts e
     JOIN n_exemplaires ex ON e.id_exemplaire = ex.id_exemplaire
     JOIN n_livre l ON ex.id_livre = l.id_livre
-    WHERE e.id_utilisateur = ? AND e.statut = 'actif'
+    WHERE e.id_utilisateur = ?
 ");
 $query_emprunts->execute([$user_id]);
 $emprunts_actifs = $query_emprunts->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupérer les réservations en cours
-$query_reservations = $db->prepare("
+$query_reservations = $connexion->prepare("
     SELECT r.*, l.titre
     FROM n_reservation r
     JOIN n_livre l ON r.id_livre = l.id_livre
@@ -55,7 +62,7 @@ $query_reservations->execute([$user_id]);
 $reservations = $query_reservations->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupérer les notifications non lues
-$query_notifications = $db->prepare("
+$query_notifications = $connexion->prepare("
     SELECT *
     FROM n_notifications
     WHERE id_utilisateur = ? AND est_lu = 0
@@ -143,7 +150,7 @@ require_once '../includes/sidebar.php';
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 text-gray-800">Mes emprunts en cours</h5>
+                            <h5 class="mb-0 text-gray-800">Mes emprunts</h5>
                         </div>
                     </div>
                     <div class="card-body p-0">

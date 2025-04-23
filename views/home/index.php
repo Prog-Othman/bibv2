@@ -2,7 +2,7 @@
     <div class="col-md-12">
         <div class="jumbotron bg-light p-5 rounded d-flex align-items-center">
             <div class="col-md-8">
-                <h1 class="display-4 text-dark">Bienvenue à la Bibliothèque</h1>
+                <h1 class="display-4 text-dark">Bienvenue Au Système De Gestion De Bibliothèque</h1>
                 <p class="lead text-dark">Découvrez notre collection de livres et profitez de nos services de prêt.</p>
                 <hr class="my-4 text-dark">
                 <p class="text-dark">Vous pouvez rechercher des livres, gérer vos emprunts et découvrir nos nouveautés.</p>

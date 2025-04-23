@@ -1,24 +1,24 @@
 <?php
 require_once '../bootstrap.php';
-session_start();
+
 
 // Vérifier si l'utilisateur est connecté
-if (!isset($_SESSION['user_login'])) {
-    header('Location: ../auth/Connexion.php');
-    exit();
-}
+// if (!isset($_SESSION['user_login'])) {
+//     header('Location: ../auth/Connexion.php');
+//     exit();
+// }
 
 // Vérifier si l'utilisateur est un administrateur
-if ($_SESSION['user']['user_role_id'] != 3) {
-    header('Location: ../admin/dashboard.php');
-    exit();
-}
+// if ($_SESSION['user']['user_role_id'] != 3) {
+//     header('Location: ../admin/dashboard.php');
+//     exit();
+// }
 
 // Inclure le contrôleur
-require_once __DIR__ . '/../controllers/EmpruntsController.php';
-$controller = new EmpruntsController();
+// require_once __DIR__ . '/../controllers/EmpruntsController.php';
+// $controller = new EmpruntsController();
 
-$user_id = $_SESSION['user_login'];
+$user_id = $_SESSION['user']['id'];
 $success = false;
 
 // Traitement de la demande d'emprunt

@@ -19,10 +19,9 @@ if ($_SESSION['user']['user_role_id'] != 1) {
 
 global $connexion;
 
-// Récupération des paramètres de recherche
 $search = isset($_GET['search']) ? $_GET['search'] : '';
 
-// Construction de la requête SQL pour récupérer les utilisateurs et les étudiants
+
 $sql = "SELECT u.user_id, u.user_nom, u.user_email, etu.etud_nom, etu.etud_prenom, etu.etud_cni, etu.etud_passport 
         FROM n_utilisateurs u
         JOIN n_etudiants etu ON u.user_id = etu.etud_user_id
@@ -33,36 +32,34 @@ $sql = "SELECT u.user_id, u.user_nom, u.user_email, etu.etud_nom, etu.etud_preno
         OR etu.etud_cni LIKE :search
         OR etu.etud_passport LIKE :search";
 
-// Préparation de la requête avec le paramètre de recherche
 $stmt = $connexion->prepare($sql);
 $stmt->execute([':search' => '%' . $search . '%']);
 
-// Récupération des résultats
+
 $utilisateurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-$statut = isset($_GET['statut']) ? $_GET['statut'] : 'disponible';  // Valeur par défaut 'disponible'
+$statut = isset($_GET['statut']) ? $_GET['statut'] : 'disponible'; 
 
-// Construction de la requête SQL pour récupérer les livres et leurs exemplaires
 $sql = "SELECT l.id_livre, l.titre, ex.id_exemplaire, ex.statut, ex.etat, ex.code_barre 
         FROM n_livre l
         JOIN n_exemplaires ex ON l.id_livre = ex.id_livre
-        WHERE ex.statut = :statut";  // Filtrer par statut (disponible, emprunté, etc.)
+        WHERE ex.statut = :statut";  
 
-// Préparation de la requête SQL
+
 $stmt = $connexion->prepare($sql);
 $stmt->execute([':statut' => $statut]);
 
-// Récupération des résultats
+
 $exemplaires = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $typesEmprunteur = "SELECT * FROM n_type_emprunteur";
 
-// Préparation de la requête SQL
+
 $stmt = $connexion->prepare($typesEmprunteur);
 $stmt->execute();
 
-// Récupération des résultats
+
 $typesEmprunteurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
@@ -136,7 +133,7 @@ require_once '../includes/sidebar.php';
 
             <!-- Exemplaire -->
             <div class="mb-3">
-              <label for="id_exemplaire" class="form-label">ID Exemplaire</label>
+              <label for="id_exemplaire" class="form-label">Exemplaire</label>
               <select class="form-control" id="id_exemplaire" name="id_exemplaire" required>
                 <option value="">Sélectionnez un exemplaire</option>
                 <?php foreach ($exemplaires as $exemplaire): ?>

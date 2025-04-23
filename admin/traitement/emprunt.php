@@ -38,11 +38,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $updateStmt = $connexion->prepare($updateQuery);
         $result = $updateStmt->execute([$etat,$commentaire,$idEmprunt]);
 
+        
+
         // Vérifier si la mise à jour a réussi
         if (!$result) {
             throw new Exception("Erreur lors de la mise à jour de l'emprunt.");
         }
 
+        if (strtolower($etat) === 'rendu') {
+            $idExemplaire = $emprunt['id_exemplaire'];
+            $updateExemplaireQuery = "UPDATE n_exemplaires SET statut = 'disponible' WHERE id_exemplaire = ?";
+            $stmtUpdateEx = $connexion->prepare($updateExemplaireQuery);
+            $stmtUpdateEx->execute([$idExemplaire]);
+        }
         // Rediriger vers la page des emprunts après la mise à jour
         header('Location: ../loans.php');
         exit();

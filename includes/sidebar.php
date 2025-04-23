@@ -120,12 +120,12 @@ $router = new Router();
                 <a class="nav-link" href="<?= APP_URL ?>/user/dashboard.php">
                     <i class="bi bi-speedometer2"></i> Tableau de bord
                 </a>
-                <a class="nav-link" href="<?php echo APP_URL; ?>/user/emprunts.php" onclick="return true;">
+                <!-- <a class="nav-link" href="<?php echo APP_URL; ?>/user/emprunts.php" onclick="return true;">
                     <i class="bi bi-book"></i> Mes emprunts
                 </a>
                 <a class="nav-link" href="<?= APP_URL ?>/user/profile.php">
                     <i class="bi bi-person"></i> Mon profil
-                </a>
+                </a> -->
             </div>
         <?php endif; ?>
 

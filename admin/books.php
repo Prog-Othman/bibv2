@@ -8,17 +8,17 @@ Database::getInstance();
 
 
 global $connexion;
-// // Vérifier si l'utilisateur est connecté
-// if (!isset($_SESSION['user'])) {
-//     header('Location: ../auth/Connexion.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user'])) {
+    header('Location: ../auth/Connexion.php');
+    exit();
+}
 
-// // Vérifier si l'utilisateur est un administrateur
-// if ($_SESSION['user']['user_role_id'] != 1) {
-//     header('Location: ../user/dashboard.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est un administrateur
+if ($_SESSION['user']['user_role_id'] != 1) {
+    header('Location: ../user/dashboard.php');
+    exit();
+}
 
 
 // Récupérer la liste des auteurs
@@ -35,54 +35,6 @@ $stmt_categories = $connexion->prepare($query_categories);
 $stmt_categories->execute();
 $categories = $stmt_categories->fetchAll(PDO::FETCH_ASSOC);
 
-
-// // Traitement de l'ajout d'un nouveau livre
-// if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-//     try {
-//         // Vérifier que tous les champs requis sont présents
-//         if (!isset($_POST['titre']) || !isset($_POST['auteur']) || !isset($_POST['isbn']) || !isset($_POST['categorie']) || !isset($_POST['quantite_totale']) || !isset($_POST['quantite_disponible'])) {
-//             throw new Exception("Tous les champs sont requis");
-//         }
-
-//         // Récupérer les données du formulaire
-//         $titre = $_POST['titre'];
-//         $auteur = $_POST['auteur'];
-//         $isbn = $_POST['isbn'];
-//         $date_publication = $_POST['date_publication'] ?: null; // Si vide, null
-//         $quantite_totale = $_POST['quantite_totale'];
-//         $quantite_disponible = $_POST['quantite_disponible'];
-//         $categorie = $_POST['categorie'];
-
-//         // Insérer le nouveau livre dans la table n_livre
-//         $insertQuery = "INSERT INTO n_livre (titre, auteur, isbn, date_publication, quantite_totale, quantite_disponible, id_categorie, mots_cles) 
-//                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-//         $insertStmt = $connexion->prepare($insertQuery);
-//         $result = $insertStmt->execute([
-//             $titre,
-//             $auteur,
-//             $isbn,
-//             $date_publication,
-//             $quantite_totale,
-//             $quantite_disponible,
-//             $categorie,
-//             $mots_cles
-//         ]);
-
-//         // Vérifier le résultat de l'insertion
-//         if (!$result) {
-//             throw new Exception("Erreur lors de l'ajout du livre");
-//         }
-
-//         // Rediriger vers la page des livres après l'ajout
-//         header('Location: books.php');
-//         exit();
-
-//     } catch (Exception $e) {
-//         $error = $e->getMessage();
-//         error_log("Error adding book: " . $error);
-//         echo "Erreur : " . $error;
-//     }
-// }
 
 // Pagination
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -107,7 +59,7 @@ $query = "SELECT l.*, c.nom_categorie, aut.*,
           WHERE e.id_livre = l.id_livre AND (em.statut = 'actif' OR em.statut = 'en_retard')) as copies_borrowed
          FROM n_livre l
          LEFT JOIN n_categorie_livres c ON l.category_id = c.id_categorie
-         JOIN n_author aut ON l.author_id = aut.author_id
+         LEFT JOIN n_author aut ON l.author_id = aut.author_id
          WHERE 1=1";
 
 $params = [];
@@ -153,6 +105,19 @@ $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Récupérer les catégories pour le filtre
 $categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_categorie")->fetchAll(PDO::FETCH_ASSOC);
 
+
+$etudiants = [];
+
+$sql = "SELECT etud_id, concat(etud_nom,' ',etud_prenom)as nom FROM n_etudiants ORDER BY etud_nom ASC";
+$stmt = $connexion->prepare($sql);
+$stmt->execute();
+$etudiants = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+$professeurs = $connexion->query("SELECT prof_id as id, prof_nom as nom FROM prof")->fetchAll();
+
+
+
 // Définir le titre de la page
 $page_title = "Gestion Des Ouvrages";
 
@@ -169,7 +134,7 @@ require_once '../includes/sidebar.php';
             <h1 class="h3 mb-0 text-gray-800">Gestion Des Ouvrages</h1>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBookModal">
-                    <i class="bi bi-plus-circle"></i> Nouveau Ouvrage
+                    <i class="bi bi-plus-circle"></i> Ajouter Ouvrage
                 </button>
             </div>
         </div>
@@ -229,7 +194,7 @@ require_once '../includes/sidebar.php';
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gray-800">Liste Des Ouvrage</h5>
+                    <h5 class="mb-0 text-gray-800">Liste Des Ouvrages</h5>
                     <span class="badge bg-primary rounded-pill">
                         <?php echo $total; ?> livre<?php echo $total > 1 ? 's' : ''; ?>
                     </span>
@@ -354,7 +319,7 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Nouveau Ouvrage</h5>
+                <h5 class="modal-title text-gray-800">Ajouter Ouvrage</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/ajout_livre.php" method="POST">
@@ -368,7 +333,8 @@ require_once '../includes/sidebar.php';
                     <!-- Auteur -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Auteur</label>
-                        <select class="form-select form-select-lg" name="auteur" required>
+                        <select class="form-select form-select-lg" name="auteur">
+                            <option value="">Auteur interne</option>
                             <?php foreach ($auteurs as $auteur): ?>
                                 <option value="<?php echo $auteur['author_id']; ?>">
                                     <?php echo htmlspecialchars($auteur['author_name']); ?>
@@ -380,7 +346,8 @@ require_once '../includes/sidebar.php';
                     <!-- ISBN -->
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">ISBN</label>
-                        <input type="text" class="form-control form-control-lg" name="isbn">
+                        <input type="text" class="form-control form-control-lg" name="isbn" pattern="^[0-9\-]{1,14}$" maxlength="14" title="Maximum 14 chiffres ou tirets autorisés">
+
                     </div>
 
                     <!-- Date de publication -->
@@ -412,6 +379,43 @@ require_once '../includes/sidebar.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
+                    <!-- Entreprise d'accueil (visible si PFE/PFA/PFC) -->
+                    <div class="mb-4 d-none" id="entrepriseField">
+                        <label class="form-label small fw-medium text-gray-800">Entreprise d’accueil</label>
+                        <input type="text" class="form-control form-control-lg" name="entreprise_accueil">
+                    </div>
+
+                    <!-- Encadrant interne (visible si PFE/PFA/PFC) -->
+                    <div class="mb-4 d-none" id="encadrantField">
+                        <label class="form-label small fw-medium text-gray-800">Encadrant interne</label>
+                        <select class="form-control form-control-lg" name="encadrant_interne">
+                            <option value="">-- Sélectionnez un encadrant --</option>
+                            <?php foreach ($professeurs as $prof) : ?>
+                                <option value="<?= htmlspecialchars($prof['id']) ?>">
+                                    <?= htmlspecialchars($prof['nom']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <!-- Étudiants ayant écrit le PFE (visible si PFE/PFA/PFC) -->
+                    <div class="mb-4 d-none" id="etudiantsField">
+                        <label class="form-label small fw-medium text-gray-800">Étudiants (1 à 3)</label>
+                        <div id="etudiantsList">
+                            <select name="etudiants[]" class="form-select form-select-lg mb-2 etudiant-select" required>
+                                <option value="">-- Choisir un étudiant --</option>
+                                <?php foreach ($etudiants as $etudiant): ?>
+                                    <option value="<?php echo $etudiant['etud_id']; ?>">
+                                        <?php echo htmlspecialchars($etudiant['nom']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addEtudiantBtn">Ajouter un autre étudiant</button>
+                    </div>
+
+
+
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Mots-clés</label>
                         <textarea class="form-control form-control-lg" name="mots_cles" maxlength="250" rows="2" placeholder="Ex: science, roman, aventure..."></textarea>
@@ -463,7 +467,7 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Modifier le livre</h5>
+                <h5 class="modal-title text-gray-800">Modifier l'ouvrage</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/edit_livre.php" method="POST" id="editForm">
@@ -475,11 +479,11 @@ require_once '../includes/sidebar.php';
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Auteur</label>
-                        <input type="text" class="form-control form-control-lg" name="auteur" id="editAuteur" required>
+                        <input type="text" class="form-control form-control-lg" name="auteur" id="editAuteur">
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">ISBN</label>
-                        <input type="text" class="form-control form-control-lg" name="isbn" id="editIsbn" required>
+                        <input type="text" class="form-control form-control-lg" name="isbn" id="editIsbn" >
                     </div>
                     <div class="mb-4">
                         <label class="form-label small fw-medium text-gray-800">Catégorie</label>
@@ -568,8 +572,15 @@ require_once '../includes/sidebar.php';
         </div>
     </div>
 </div>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+
+
     document.addEventListener('DOMContentLoaded', function() {
         // Edit book modal handler
         const editBookModal = document.getElementById('editBookModal');
@@ -619,4 +630,81 @@ require_once '../includes/sidebar.php';
             deleteBookModal.querySelector('#deleteBookTitle').textContent = title;
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const categorieSelect = document.querySelector('select[name="categorie"]');
+        const entrepriseField = document.getElementById('entrepriseField');
+        const encadrantField = document.getElementById('encadrantField');
+
+        // Tableau des catégories qui nécessitent les champs supplémentaires
+        const categoriesSpeciales = ['PFE', 'PFA', 'PFC'];
+
+        // Fonction pour mettre à jour l'affichage
+        function toggleChampsSupp() {
+            const selectedText = categorieSelect.options[categorieSelect.selectedIndex].text.toUpperCase();
+            if (categoriesSpeciales.includes(selectedText)) {
+                entrepriseField.classList.remove('d-none');
+                encadrantField.classList.remove('d-none');
+            } else {
+                entrepriseField.classList.add('d-none');
+                encadrantField.classList.add('d-none');
+            }
+        }
+
+        // Appel initial
+        toggleChampsSupp();
+
+        // À chaque changement
+        categorieSelect.addEventListener('change', toggleChampsSupp);
+    });
+
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const categorieSelect = document.querySelector('select[name="categorie"]');
+        const entrepriseField = document.getElementById('entrepriseField');
+        const encadrantField = document.getElementById('encadrantField');
+        const etudiantsField = document.getElementById('etudiantsField');
+        const etudiantsList = document.getElementById('etudiantsList');
+        const addEtudiantBtn = document.getElementById('addEtudiantBtn');
+
+        const categoriesSpeciales = ['PFE', 'PFA', 'PFC'];
+
+        function toggleChampsSupp() {
+            const selectedText = categorieSelect.options[categorieSelect.selectedIndex].text.toUpperCase();
+            const show = categoriesSpeciales.includes(selectedText);
+            entrepriseField.classList.toggle('d-none', !show);
+            encadrantField.classList.toggle('d-none', !show);
+            etudiantsField.classList.toggle('d-none', !show);
+        }
+
+        categorieSelect.addEventListener('change', toggleChampsSupp);
+        toggleChampsSupp();
+
+        // Initialiser Select2 pour le premier champ
+        // $('.etudiant-select').select2({
+        //     placeholder: "Choisir un étudiant",
+        //     width: '100%'
+        // });
+
+        addEtudiantBtn.addEventListener('click', function () {
+            const currentFields = etudiantsList.querySelectorAll('select[name="etudiants[]"]');
+            if (currentFields.length < 3) {
+                // Cloner le premier select et reinitialiser
+                const firstSelect = currentFields[0];
+                const clone = firstSelect.cloneNode(true);
+                clone.selectedIndex = 0;
+                clone.classList.add('etudiant-select');
+
+                etudiantsList.appendChild(clone);
+
+                // Réinitialiser Select2 sur tous les nouveaux selects
+                // $(clone).select2({
+                //     placeholder: "Choisir un étudiant",
+                //     width: '100%'
+                // });
+            } else {
+                alert('Maximum 3 étudiants autorisés.');
+            }
+        });
+    });
 </script>

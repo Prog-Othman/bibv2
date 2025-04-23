@@ -11,26 +11,19 @@ Database::getInstance();
 
 global $connexion;
 
-// // Vérifier si l'utilisateur est connecté
-// if (!isset($_SESSION['user'])) {
-//     header('Location: ../auth/Connexion.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user'])) {
+    header('Location: ../auth/Connexion.php');
+    exit();
+}
 
-// // Vérifier si l'utilisateur est un administrateur
-// if ($_SESSION['user']['user_role_id'] != 1) {
-//     header('Location: ../user/dashboard.php');
-//     exit();
-// }
+// Vérifier si l'utilisateur est un administrateur
+if ($_SESSION['user']['user_role_id'] != 1) {
+    header('Location: ../user/dashboard.php');
+    exit();
+}
 
-// // Connexion à la base de données
-// try {
-//     $db = new PDO("mysql:host=localhost;dbname=bibliotheque;charset=utf8", "root", "");
-//     error_log("Database connection successful.");
-// } catch (PDOException $e) {
-//     error_log("Database connection failed: " . $e->getMessage());
-//     exit("Database connection error.");
-// }
+
 
 // Traitement de la création d'un nouvel emprunt
 if (isset($_GET['action']) && $_GET['action'] === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -182,11 +175,14 @@ SELECT
         WHEN etu.etud_id IS NOT NULL THEN CONCAT(etu.etud_nom, ' ', etu.etud_prenom)
         WHEN p.prof_id IS NOT NULL THEN CONCAT(p.prof_nom, ' ', p.prof_prenom)
         ELSE 'Inconnu'
-    END AS nom
+    END AS nom,
+    CONCAT (l.titre, ' ', ex.code_barre) AS livre_nom
 FROM n_emprunts e
 LEFT JOIN n_utilisateurs u ON u.user_id = e.id_utilisateur
 LEFT JOIN n_etudiants etu ON u.user_ref_id = etu.etud_id AND u.user_role_id = 3
 LEFT JOIN prof p ON u.user_id = p.prof_user_id AND u.user_role_id = 5
+JOIN n_exemplaires ex ON e.id_exemplaire = ex.id_exemplaire
+JOIN n_livre l ON ex.id_livre  =l.id_livre
 WHERE 1
 ";
 $params = [];
@@ -506,6 +502,7 @@ require_once '../includes/sidebar.php';
         <tr>
             <th>#</th>
             <th>Nom Adhérent</th>
+            <th>Livre</th>
             <th>Date Emprunt</th>
             <th>Retour Prévu</th>
             <th>Retour Effectif</th>
@@ -521,9 +518,12 @@ require_once '../includes/sidebar.php';
                 <tr>
                     <td><?= $emp['id_emprunt'] ?></td>
                     <td><?= htmlspecialchars($emp['nom']) ?></td>
-                    <td><?= $emp['date_emprunt'] ?></td>
-                    <td><?= $emp['date_retour_prevue'] ?></td>
-                    <td><?= $emp['date_retour_effective'] ?? '—' ?></td>
+                    <td><?= htmlspecialchars($emp['livre_nom']) ?></td>
+                    <td><?= date('d/m/Y', strtotime($emp['date_emprunt'])) ?></td>
+                    <td><?= date('d/m/Y', strtotime($emp['date_retour_prevue'])) ?></td>
+                    <td>
+                        <?= $emp['date_retour_effective'] ? date('d/m/Y', strtotime($emp['date_retour_effective'])) : '—' ?>
+                    </td>
                     <td><?= ucfirst($emp['statut']) ?></td>
                     <td><?= htmlspecialchars($emp['notes'] ?? '') ?></td>
                     <td>
