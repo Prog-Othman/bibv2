@@ -402,7 +402,7 @@ require_once '../includes/sidebar.php';
                     <div class="mb-4 d-none" id="etudiantsField">
                         <label class="form-label small fw-medium text-gray-800">Étudiants (1 à 3)</label>
                         <div id="etudiantsList">
-                            <select name="etudiants[]" class="form-select form-select-lg mb-2 etudiant-select" required>
+                            <select name="etudiants[]" class="form-select form-select-lg mb-2 etudiant-select">
                                 <option value="">-- Choisir un étudiant --</option>
                                 <?php foreach ($etudiants as $etudiant): ?>
                                     <option value="<?php echo $etudiant['etud_id']; ?>">
