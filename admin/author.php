@@ -6,6 +6,7 @@ require_once '../config/Database.php';
 
 Database::getInstance();
 
+include './lang.php';
 
 global $connexion;
 
@@ -51,11 +52,12 @@ switch ($action) {
             if (!empty($name)) {
                 $stmt = $connexion->prepare("UPDATE n_author SET author_name = ?, author_status = ? WHERE author_id = ?");
                 if ($stmt->execute([$name, $status, $id])) {
-                    $message = '<div class="alert alert-success">Auteur mis à jour avec succès.</div>';
+                    $message = '<div class="alert alert-success">' . __('author_update_success') . '</div>';
                 } else {
-                    $message = '<div class="alert alert-danger">Erreur lors de la mise à jour.</div>';
+                    $message = '<div class="alert alert-danger">' . __('author_update_error') . '</div>';
                 }
             }
+            
         }
         break;
 
@@ -64,10 +66,10 @@ switch ($action) {
         if ($id) {
             $stmt = $connexion->prepare("DELETE FROM n_author WHERE author_id = ?");
             if ($stmt->execute([$id])) {
-                $message = '<div class="alert alert-success">Auteur supprimé avec succès.</div>';
+                $message = '<div class="alert alert-success">' . __('author_delete_success') . '</div>';
             } else {
-                $message = '<div class="alert alert-danger">Erreur lors de la suppression.</div>';
-            }
+                $message = '<div class="alert alert-danger">' . __('author_delete_error') . '</div>';
+            }            
         }
         break;
 }
@@ -83,9 +85,9 @@ require_once '../includes/sidebar.php';
 <div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des auteurs</h1>
+        <h1 class="h3 mb-0 text-gray-800"><?= __('author_management') ?></h1>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAuthorModal">
-                <i class="bi bi-plus-circle"></i> Ajouter un auteur
+                <i class="bi bi-plus-circle"></i> <?= __('add_author') ?>
             </button>
         </div>
 
@@ -97,18 +99,18 @@ require_once '../includes/sidebar.php';
 
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
-                <h5 class="mb-0 text-gray-800">Liste des auteurs</h5>
+                <h5 class="mb-0 text-gray-800"><?= __('authors_list') ?></h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Nom</th>
-                                <th>Statut</th>
-                                <th>Créé le</th>
-                                <th>Modifié le</th>
-                                <th>Actions</th>
+                                <th><?= __('name') ?></th>
+                                <th><?= __('status') ?></th>
+                                <th><?= __('created_at') ?></th>
+                                <th><?= __('updated_at') ?></th>
+                                <th><?= __('actions') ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -130,19 +132,19 @@ require_once '../includes/sidebar.php';
                                                     data-id="<?php echo $author['author_id']; ?>"
                                                     data-name="<?php echo htmlspecialchars($author['author_name']); ?>"
                                                     data-status="<?php echo $author['author_status']; ?>">
-                                                <i class="bi bi-pencil"></i> Modifier
+                                                <i class="bi bi-pencil"></i> <?= __('edit') ?>
                                             </button>
                                             <a href="?action=delete&id=<?php echo $author['author_id']; ?>" 
                                                class="btn btn-sm btn-outline-danger"
                                                onclick="return confirm('Supprimer cet auteur ?')">
-                                                <i class="bi bi-trash"></i> Supprimer
+                                                <i class="bi bi-trash"></i> <?= __('delete') ?>
                                             </a>
                                         </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                             <?php if (empty($authors)): ?>
-                                <tr><td colspan="5" class="text-center py-4 text-muted">Aucun auteur trouvé</td></tr>
+                                <tr><td colspan="5" class="text-center py-4 text-muted"><?= __('no_authors_found') ?></td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -158,25 +160,25 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <form action="?action=add" method="POST" class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Nouvel auteur</h5>
+                <h5 class="modal-title"><?= __('new_author') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label>Nom</label>
+                    <label><?= __('name') ?></label>
                     <input type="text" name="name" class="form-control" required>
                 </div>
                 <div class="mb-3">
-                    <label>Statut</label>
+                    <label><?= __('status') ?></label>
                     <select name="status" class="form-select">
-                        <option value="Actif">Actif</option>
-                        <option value="Inactif">Inactif</option>
+                        <option value="Actif"><?= __('active') ?></option>
+                        <option value="Inactif"><?= __('inactive') ?></option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary">Ajouter</button>
+                <button class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                <button class="btn btn-primary"><?= __('add') ?></button>
             </div>
         </form>
     </div>
@@ -188,29 +190,30 @@ require_once '../includes/sidebar.php';
         <form action="?action=edit" method="POST" class="modal-content border-0 shadow">
             <input type="hidden" name="id" id="editId">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title">Modifier auteur</h5>
+                <h5 class="modal-title"><?= __('edit_author') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label>Nom</label>
+                    <label><?= __('name') ?></label>
                     <input type="text" name="name" class="form-control" id="editName" required>
                 </div>
                 <div class="mb-3">
-                    <label>Statut</label>
+                    <label><?= __('status') ?></label>
                     <select name="status" class="form-select" id="editStatus">
-                        <option value="Actif">Actif</option>
-                        <option value="Inactif">Inactif</option>
+                        <option value="Actif"><?= __('active') ?></option>
+                        <option value="Inactif"><?= __('inactive') ?></option>
                     </select>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0">
-                <button class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary">Mettre à jour</button>
+                <button class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                <button class="btn btn-primary"><?= __('update') ?></button>
             </div>
         </form>
     </div>
 </div>
+
 
 
 <script>

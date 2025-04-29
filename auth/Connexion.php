@@ -1,5 +1,23 @@
 <?php
 
+$lang = 'fr';
+
+if (isset($_GET['lang'])) {
+    $lang = $_GET['lang'];
+    $_SESSION['lang'] = $lang;
+} elseif (isset($_SESSION['lang'])) {
+    $lang = $_SESSION['lang'];
+}
+
+
+$langFile =  "../lang/{$lang}.php";
+
+if (!file_exists($langFile)) {
+    $langFile = "../lang/fr.php";
+}
+
+$translations = include($langFile);
+
 ob_start();
 require_once __DIR__ . '/../bootstrap.php';
 
@@ -97,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="col-md-6 bg-white d-flex align-items-center justify-content-center p-4">
                 <div class="w-100" style="max-width: 400px;">
-                    <h1 class="text-primary-custom text-center display-4 mb-4">Espace Connexion</h1>
+                    <h1 class="text-primary-custom text-center display-4 mb-4"><?php echo $translations['Espace Connexion'];?> </h1>
                     <h2 class="text-center h4 mb-4 text-dark">
                         Connectez-vous pour 
                         accéder à votre espace
@@ -109,13 +127,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="POST" action="">
 
                         <div class="mb-3">
-                            <label for="user_nom" class="form-label text-primary-custom">Compte</label>
+                            <label for="user_nom" class="form-label text-primary-custom"><?php echo $translations['Compte'];?></label>
                             <input type="text" class="form-control form-control-lg" id="user_nom" name="user_nom" required 
                                 value="<?php echo isset($_POST['user_nom']) ? htmlspecialchars($_POST['user_nom']) : ''; ?>">
                         </div>
 
                         <div class="mb-3">
-                            <label for="user_login" class="form-label text-primary-custom">Mot de passe</label>
+                            <label for="user_login" class="form-label text-primary-custom"><?php echo $translations['Mot de passe'];?></label>
                             <input type="password" class="form-control form-control-lg" id="user_login" name="user_login" required 
                                 value="<?php echo isset($_POST['user_login']) ? htmlspecialchars($_POST['user_login']) : ''; ?>">
                         </div>
@@ -123,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="mb-3 form-check">
                             <input type="checkbox" class="form-check-input" name="remember" id="remember">
                             <label class="form-check-label text-black" for="remember">
-                                Rester connecté
+                                <?php echo $translations['Rester connecté'];?>
                             </label>
                         </div>
 
@@ -133,12 +151,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <path d="M13.6462 15.2751L16.9352 12.0001L13.6462 8.72412" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
                                 <path d="M9.66382 7.375V2.75H21.0928V21.25H9.66382V16.625" stroke="#ffffff" stroke-width="1.5" stroke-linecap="square"></path>
                             </svg>
-                            Connectez-vous
+                            <?php echo $translations['Connectez-vous'];?> 
                         </button>
                     </form>
                     
                     <p class="text-center mt-3">
-                        <a href="request_reset.php" class="text-primary-custom text-decoration-none">Mot de passe oublié ?</a>
+                        <a href="request_reset.php" class="text-primary-custom text-decoration-none"> <?php echo $translations['Mot de passe oublié ?'];?></a>
                     </p>
                 </div>
             </div>

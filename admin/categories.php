@@ -5,6 +5,7 @@ require_once '../config/Database.php';
 
 
 Database::getInstance();
+include './lang.php';
 
 
 global $connexion;
@@ -32,7 +33,7 @@ switch ($action) {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $nom = $_POST['nom'] ?? '';
             $description = $_POST['description'] ?? '';
-            
+
             if (!empty($nom)) {
                 $stmt = $connexion->prepare("INSERT INTO n_categorie_livres (nom_categorie, description) VALUES (?, ?)");
                 if ($stmt->execute([$nom, $description])) {
@@ -49,15 +50,16 @@ switch ($action) {
         if ($id && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $nom = $_POST['nom'] ?? '';
             $description = $_POST['description'] ?? '';
-            
+
             if (!empty($nom)) {
                 $stmt = $connexion->prepare("UPDATE n_categorie_livres SET nom_categorie = ?, description = ? WHERE id_categorie = ?");
                 if ($stmt->execute([$nom, $description, $id])) {
-                    $message = '<div class="alert alert-success">Catégorie mise à jour avec succès.</div>';
+                    $message = '<div class="alert alert-success">' . __('category_update_success') . '</div>';
                 } else {
-                    $message = '<div class="alert alert-danger">Erreur lors de la mise à jour de la catégorie.</div>';
+                    $message = '<div class="alert alert-danger">' . __('category_update_error') . '</div>';
                 }
             }
+            
         }
         break;
 
@@ -95,16 +97,17 @@ require_once '../includes/sidebar.php';
 ?>
 
 <!-- Main Content Area -->
-<div class="content w-100 m-0 pt-5"  id="content">
+<div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des catégories</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('manage_categories'); ?></h1>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-                    <i class="bi bi-plus-circle"></i> Nouvelle catégorie
+                    <i class="bi bi-plus-circle"></i> <?= __('new_category'); ?>
                 </button>
             </div>
+
         </div>
 
         <?php if ($message): ?>
@@ -119,7 +122,7 @@ require_once '../includes/sidebar.php';
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gray-800">Liste des catégories</h5>
+                    <h5 class="mb-0 text-gray-800"><?= __('categories_list') ?></h5>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -127,10 +130,10 @@ require_once '../includes/sidebar.php';
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="px-4">Nom</th>
-                                <th>Description</th>
-                                <th>Nombre de livres</th>
-                                <th class="px-4">Actions</th>
+                                <th class="px-4"><?= __('name') ?></th>
+                                <th><?= __('description') ?></th>
+                                <th><?= __('books_count') ?></th>
+                                <th class="px-4"><?= __('actions') ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -150,21 +153,21 @@ require_once '../includes/sidebar.php';
                                     </td>
                                     <td class="px-4">
                                         <div class="d-flex gap-2">
-                                            <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#editCategoryModal" 
-                                                    data-id="<?php echo $category['id_categorie']; ?>"
-                                                    data-nom="<?php echo htmlspecialchars($category['nom_categorie']); ?>"
-                                                    data-description="<?php echo htmlspecialchars($category['description'] ?? ''); ?>">
+                                            <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editCategoryModal"
+                                                data-id="<?php echo $category['id_categorie']; ?>"
+                                                data-nom="<?php echo htmlspecialchars($category['nom_categorie']); ?>"
+                                                data-description="<?php echo htmlspecialchars($category['description'] ?? ''); ?>">
                                                 <i class="bi bi-pencil"></i>
-                                                <span>Modifier</span>
+                                                <span><?= __('edit') ?></span>
                                             </button>
                                             <?php if ($bookCount == 0): ?>
-                                                <a href="?action=delete&id=<?php echo $category['id_categorie']; ?>" 
-                                                   class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')">
+                                                <a href="?action=delete&id=<?php echo $category['id_categorie']; ?>"
+                                                    class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                                    onclick="return confirm(<?= __('delete_confirmation') ?>)">
                                                     <i class="bi bi-trash"></i>
-                                                    <span>Supprimer</span>
+                                                    <span><?= __('delete') ?></span>
                                                 </a>
                                             <?php endif; ?>
                                         </div>
@@ -173,7 +176,7 @@ require_once '../includes/sidebar.php';
                             <?php endforeach; ?>
                             <?php if (empty($categories)): ?>
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Aucune catégorie trouvée</td>
+                                    <td colspan="4" class="text-center py-4 text-muted"><?= __('no_categories_found') ?></td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
@@ -189,23 +192,23 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800" id="addCategoryModalLabel">Nouvelle catégorie</h5>
+                <h5 class="modal-title text-gray-800" id="addCategoryModalLabel"><?= __('new_category') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="?action=add" method="POST">
                 <div class="modal-body">
                     <div class="mb-4">
-                        <label for="nom" class="form-label small fw-medium text-gray-800">Nom de la catégorie</label>
+                        <label for="nom" class="form-label small fw-medium text-gray-800"><?= __('category_name_label') ?></label>
                         <input type="text" class="form-control form-control-lg" id="nom" name="nom" required>
                     </div>
                     <div class="mb-4">
-                        <label for="description" class="form-label small fw-medium text-gray-800">Description</label>
+                        <label for="description" class="form-label small fw-medium text-gray-800"><?= __('description') ?></label>
                         <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary px-4">Ajouter</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= __('add') ?></button>
                 </div>
             </form>
         </div>
@@ -217,24 +220,24 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800" id="editCategoryModalLabel">Modifier la catégorie</h5>
+                <h5 class="modal-title text-gray-800" id="editCategoryModalLabel"><?= __('edit_category') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="?action=edit" method="POST" id="editForm">
                 <input type="hidden" name="id" id="editId">
                 <div class="modal-body">
                     <div class="mb-4">
-                        <label for="editNom" class="form-label small fw-medium text-gray-800">Nom de la catégorie</label>
+                        <label for="editNom" class="form-label small fw-medium text-gray-800"><?= __('category_name_label') ?></label>
                         <input type="text" class="form-control form-control-lg" id="editNom" name="nom" required>
                     </div>
                     <div class="mb-4">
-                        <label for="editDescription" class="form-label small fw-medium text-gray-800">Description</label>
+                        <label for="editDescription" class="form-label small fw-medium text-gray-800"><?= __('description') ?></label>
                         <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary px-4">Enregistrer</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= __('save') ?></button>
                 </div>
             </form>
         </div>
@@ -242,29 +245,28 @@ require_once '../includes/sidebar.php';
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all modals
-    var modals = document.querySelectorAll('.modal');
-    modals.forEach(function(modal) {
-        new bootstrap.Modal(modal);
-    });
-
-    // Edit modal handler
-    const editModal = document.getElementById('editCategoryModal');
-    if (editModal) {
-        editModal.addEventListener('show.bs.modal', function(event) {
-            const button = event.relatedTarget;
-            const id = button.getAttribute('data-id');
-            const nom = button.getAttribute('data-nom');
-            const description = button.getAttribute('data-description');
-
-            const form = editModal.querySelector('#editForm');
-            form.action = `?action=edit&id=${id}`;
-            editModal.querySelector('#editId').value = id;
-            editModal.querySelector('#editNom').value = nom;
-            editModal.querySelector('#editDescription').value = description;
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize all modals
+        var modals = document.querySelectorAll('.modal');
+        modals.forEach(function(modal) {
+            new bootstrap.Modal(modal);
         });
-    }
-});
-</script>
 
+        // Edit modal handler
+        const editModal = document.getElementById('editCategoryModal');
+        if (editModal) {
+            editModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const nom = button.getAttribute('data-nom');
+                const description = button.getAttribute('data-description');
+
+                const form = editModal.querySelector('#editForm');
+                form.action = `?action=edit&id=${id}`;
+                editModal.querySelector('#editId').value = id;
+                editModal.querySelector('#editNom').value = nom;
+                editModal.querySelector('#editDescription').value = description;
+            });
+        }
+    });
+</script>

@@ -120,34 +120,38 @@ $professeurs = $connexion->query("SELECT prof_id as id, prof_nom as nom FROM pro
 
 // Définir le titre de la page
 $page_title = "Gestion Des Ouvrages";
+include './lang.php';
 
 // Inclure le header et le sidebar
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';
+
 ?>
+
+
 
 <!-- Main Content Area -->
 <div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion Des Ouvrages</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('manage_books') ?></h1>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-primary d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addBookModal">
-                    <i class="bi bi-plus-circle"></i> Ajouter Ouvrage
+                    <i class="bi bi-plus-circle"></i> <?= __('add_book') ?>
                 </button>
             </div>
         </div>
         <?php if (isset($_GET['success']) && $_GET['success'] === 'modification_effectuee'): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                ✅ Le livre a été modifié avec succès.
+                     <?= __('book_modified') ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
             </div>
         <?php endif; ?>
 
         <?php if (isset($_GET['success']) && $_GET['success'] === 'suppression_effectuee'): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                ✅ Le livre a été supprimé avec succès.
+                    <?= __('book_deleted') ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
             </div>
         <?php endif; ?>
@@ -159,23 +163,23 @@ require_once '../includes/sidebar.php';
             <div class="card-body">
             <form action="" method="GET" class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="titre" placeholder="Titre de l'ouvrage" value="<?php echo htmlspecialchars($titre ?? ''); ?>">
+                    <input type="text" class="form-control" name="titre" placeholder="<?= __('title') ?>" value="<?php echo htmlspecialchars($titre ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="mot_cle" placeholder="Mot-clé" value="<?php echo htmlspecialchars($mot_cle ?? ''); ?>">
+                    <input type="text" class="form-control" name="mot_cle" placeholder="<?= __('keyword') ?>" value="<?php echo htmlspecialchars($mot_cle ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="resume" placeholder="Partie du résumé" value="<?php echo htmlspecialchars($resume ?? ''); ?>">
+                    <input type="text" class="form-control" name="resume" placeholder="<?= __('resume_part') ?>" value="<?php echo htmlspecialchars($resume ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="isbn" placeholder="ISBN" value="<?php echo htmlspecialchars($isbn ?? ''); ?>">
+                    <input type="text" class="form-control" name="isbn" placeholder="<?= __('isbn') ?>" value="<?php echo htmlspecialchars($isbn ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="number" class="form-control" name="id_livre" placeholder="ID du livre" value="<?php echo htmlspecialchars($id_livre ?? ''); ?>">
+                    <input type="number" class="form-control" name="id_livre" placeholder="<?= __('book_id') ?>" value="<?php echo htmlspecialchars($id_livre ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
                     <select class="form-select" name="category">
-                        <option value="0">Toutes les catégories</option>
+                        <option value="0"><?= __('all_categories') ?></option>
                         <?php foreach ($categories as $category): ?>
                             <option value="<?php echo $category['id_categorie']; ?>" <?php echo ($categoryFilter == $category['id_categorie']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($category['nom_categorie']); ?>
@@ -184,7 +188,7 @@ require_once '../includes/sidebar.php';
                     </select>
                 </div>
                 <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <button type="submit" class="btn btn-primary"><?= __('filter') ?></button>
                 </div>
             </form>
             </div>
@@ -192,100 +196,100 @@ require_once '../includes/sidebar.php';
 
         <!-- Books Table Card -->
         <div class="card border-0 shadow-sm rounded-3">
-            <div class="card-header bg-white py-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gray-800">Liste Des Ouvrages</h5>
-                    <span class="badge bg-primary rounded-pill">
-                        <?php echo $total; ?> livre<?php echo $total > 1 ? 's' : ''; ?>
-                    </span>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="px-4">Titre</th>
-                                <th>Auteur</th>
-                                <th>Catégorie</th>
-                                <th>ISBN</th>
-                                <th>Disponibilité</th>
-                                <th class="px-4">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (!empty($books)): ?>
-                                <?php foreach ($books as $book): ?>
-                                    <tr>
-                                        <td class="px-4 fw-medium">
-                                            <?php echo htmlspecialchars($book['titre']); ?>
-                                        </td>
-                                        <td class="text-muted">
-                                            <?php echo htmlspecialchars($book['author_name']); ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">
-                                                <?php echo htmlspecialchars($book['nom_categorie']); ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-muted">
-                                            <?php echo htmlspecialchars($book['isbn']); ?>
-                                        </td>
-                                        <td>
-                                            <?php
-                                            $available = $book['total_copies'] - $book['copies_borrowed'];
-                                            $badgeClass = $available > 0 ? 'bg-success' : 'bg-danger';
-                                            ?>
-                                            <span class="badge <?php echo $badgeClass; ?> bg-opacity-10 text-<?php echo $available > 0 ? 'success' : 'danger'; ?> rounded-pill px-3">
-                                                <?php echo $available; ?>/<?php echo $book['total_copies']; ?> disponible<?php echo $available > 1 ? 's' : ''; ?>
-                                            </span>
-                                        </td>
-                                        <td class="px-4">
-                                            <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editBookModal"
-                                                    data-id="<?php echo $book['id_livre']; ?>"
-                                                    data-titre="<?php echo htmlspecialchars($book['titre']); ?>"
-                                                    data-auteur="<?php echo htmlspecialchars($book['author_name']); ?>"
-                                                    data-isbn="<?php echo htmlspecialchars($book['isbn']); ?>"
-                                                    data-categorie="<?php echo $book['category_id']; ?>">
-                                                    <i class="bi bi-pencil"></i>
-                                                    <span>Modifier</span>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#addCopyModal"
-                                                    data-id="<?php echo $book['id_livre']; ?>"
-                                                    data-titre="<?php echo htmlspecialchars($book['titre']); ?>">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                    <span>Exemplaire</span>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteBookModal"
-                                                    data-id="<?php echo $book['id_livre']; ?>"
-                                                    data-title="<?php echo htmlspecialchars($book['titre']); ?>">
-                                                    <i class="bi bi-trash"></i>
-                                                    <span>Supprimer</span>
-                                                </button>
-
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">
-                                        <?php echo empty($search) ? 'Aucun livre trouvé' : 'Aucun résultat pour votre recherche'; ?>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-gray-800"><?= __('book_list') ?></h5>
+            <span class="badge bg-primary rounded-pill">
+                <?= $total ?> <?= __('books') ?><?= $total > 1 ? 's' : '' ?>
+            </span>
         </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4"><?= __('title') ?></th>
+                        <th><?= __('author') ?></th>
+                        <th><?= __('category') ?></th>
+                        <th><?= __('isbn') ?></th>
+                        <th><?= __('available') ?></th>
+                        <th class="px-4"><?= __('actions') ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($books)): ?>
+                        <?php foreach ($books as $book): ?>
+                            <tr>
+                                <td class="px-4 fw-medium">
+                                    <?= htmlspecialchars($book['titre']) ?>
+                                </td>
+                                <td class="text-muted">
+                                    <?= htmlspecialchars($book['author_name']) ?>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3">
+                                        <?= htmlspecialchars($book['nom_categorie']) ?>
+                                    </span>
+                                </td>
+                                <td class="text-muted">
+                                    <?= htmlspecialchars($book['isbn']) ?>
+                                </td>
+                                <td>
+                                    <?php
+                                    $available = $book['total_copies'] - $book['copies_borrowed'];
+                                    $badgeClass = $available > 0 ? 'bg-success' : 'bg-danger';
+                                    ?>
+                                    <span class="badge <?= $badgeClass ?> bg-opacity-10 text-<?= $available > 0 ? 'success' : 'danger' ?> rounded-pill px-3">
+                                        <?= $available ?>/<?= $book['total_copies'] ?> <?= __('available') ?><?= $available > 1 ? 's' : '' ?>
+                                    </span>
+                                </td>
+                                <td class="px-4">
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editBookModal"
+                                            data-id="<?= $book['id_livre'] ?>"
+                                            data-titre="<?= htmlspecialchars($book['titre']) ?>"
+                                            data-auteur="<?= htmlspecialchars($book['author_name']) ?>"
+                                            data-isbn="<?= htmlspecialchars($book['isbn']) ?>"
+                                            data-categorie="<?= $book['category_id'] ?>">
+                                            <i class="bi bi-pencil"></i>
+                                            <span><?= __('edit') ?></span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addCopyModal"
+                                            data-id="<?= $book['id_livre'] ?>"
+                                            data-titre="<?= htmlspecialchars($book['titre']) ?>">
+                                            <i class="bi bi-plus-circle"></i>
+                                            <span><?= __('copy') ?></span>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteBookModal"
+                                            data-id="<?= $book['id_livre'] ?>"
+                                            data-title="<?= htmlspecialchars($book['titre']) ?>">
+                                            <i class="bi bi-trash"></i>
+                                            <span><?= __('delete') ?></span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <?= empty($search) ? __('no_books_found') : __('no_search_results') ?>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 
         <!-- Pagination -->
         <?php if ($totalPages > 1): ?>
@@ -319,22 +323,22 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Ajouter Ouvrage</h5>
+                <h5 class="modal-title text-gray-800"><?= __('add_book') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/ajout_livre.php" method="POST">
                 <div class="modal-body">
                     <!-- Titre du livre -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Titre</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('title') ?></label>
                         <input type="text" class="form-control form-control-lg" name="titre" required>
                     </div>
 
                     <!-- Auteur -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Auteur</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('author') ?></label>
                         <select class="form-select form-select-lg" name="auteur">
-                            <option value="">Auteur interne</option>
+                            <option value=""><?= __('Internal_author') ?></option>
                             <?php foreach ($auteurs as $auteur): ?>
                                 <option value="<?php echo $auteur['author_id']; ?>">
                                     <?php echo htmlspecialchars($auteur['author_name']); ?>
@@ -345,32 +349,32 @@ require_once '../includes/sidebar.php';
 
                     <!-- ISBN -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">ISBN</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('isbn') ?></label>
                         <input type="text" class="form-control form-control-lg" name="isbn" pattern="^[0-9\-]{1,14}$" maxlength="14" title="Maximum 14 chiffres ou tirets autorisés">
 
                     </div>
 
                     <!-- Date de publication -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Date de publication</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('date_publication') ?></label>
                         <input type="date" class="form-control form-control-lg" name="date_publication" required>
                     </div>
 
                     <!-- Quantité totale -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Quantité totale</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('quanti_totale') ?></label>
                         <input type="number" class="form-control form-control-lg" name="quantite_totale" required>
                     </div>
 
                     <!-- Quantité disponible -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Quantité disponible</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('quanti_disponible') ?></label>
                         <input type="number" class="form-control form-control-lg" name="quantite_disponible" required>
                     </div>
 
                     <!-- Catégorie -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Catégorie</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('category') ?></label>
                         <select class="form-select form-select-lg" name="categorie" required>
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?php echo $category['id_categorie']; ?>">
@@ -381,15 +385,15 @@ require_once '../includes/sidebar.php';
                     </div>
                     <!-- Entreprise d'accueil (visible si PFE/PFA/PFC) -->
                     <div class="mb-4 d-none" id="entrepriseField">
-                        <label class="form-label small fw-medium text-gray-800">Entreprise d’accueil</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('hosting_company') ?></label>
                         <input type="text" class="form-control form-control-lg" name="entreprise_accueil">
                     </div>
 
                     <!-- Encadrant interne (visible si PFE/PFA/PFC) -->
                     <div class="mb-4 d-none" id="encadrantField">
-                        <label class="form-label small fw-medium text-gray-800">Encadrant interne</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('internal_supervisor') ?></label>
                         <select class="form-control form-control-lg" name="encadrant_interne">
-                            <option value="">-- Sélectionnez un encadrant --</option>
+                            <option value="">-- <?= __('select_supervisor') ?>--</option>
                             <?php foreach ($professeurs as $prof) : ?>
                                 <option value="<?= htmlspecialchars($prof['id']) ?>">
                                     <?= htmlspecialchars($prof['nom']) ?>
@@ -400,10 +404,10 @@ require_once '../includes/sidebar.php';
 
                     <!-- Étudiants ayant écrit le PFE (visible si PFE/PFA/PFC) -->
                     <div class="mb-4 d-none" id="etudiantsField">
-                        <label class="form-label small fw-medium text-gray-800">Étudiants (1 à 3)</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('students') ?></label>
                         <div id="etudiantsList">
                             <select name="etudiants[]" class="form-select form-select-lg mb-2 etudiant-select">
-                                <option value="">-- Choisir un étudiant --</option>
+                                <option value="">--<?=__('choose_student') ?>  --</option>
                                 <?php foreach ($etudiants as $etudiant): ?>
                                     <option value="<?php echo $etudiant['etud_id']; ?>">
                                         <?php echo htmlspecialchars($etudiant['nom']); ?>
@@ -411,27 +415,27 @@ require_once '../includes/sidebar.php';
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="addEtudiantBtn">Ajouter un autre étudiant</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addEtudiantBtn"><?= __('add_another_student') ?></button>
                     </div>
 
 
 
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Mots-clés</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('keyword') ?></label>
                         <textarea class="form-control form-control-lg" name="mots_cles" maxlength="250" rows="2" placeholder="Ex: science, roman, aventure..."></textarea>
-                        <div class="form-text">Maximum 250 caractères.</div>
+                        <div class="form-text"><?= __('max_250_characters') ?></div>
                     </div>
 
                     <!-- Résumé -->
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Résumé</label>
-                        <textarea class="form-control form-control-lg" name="resume" rows="5" placeholder="Résumé du livre..."></textarea>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('resume') ?></label>
+                        <textarea class="form-control form-control-lg" name="resume" rows="5" placeholder="<?= __('resume') ?>"></textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary px-4">Ajouter</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= __('add') ?></button>
                 </div>
             </form>
 
@@ -467,26 +471,26 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Modifier l'ouvrage</h5>
+                <h5 class="modal-title text-gray-800"><?= __('edit_book') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/edit_livre.php" method="POST" id="editForm">
                 <input type="hidden" name="id" id="editId">
                 <div class="modal-body">
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Titre</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('title') ?></label>
                         <input type="text" class="form-control form-control-lg" name="titre" id="editTitre" required>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Auteur</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('author') ?></label>
                         <input type="text" class="form-control form-control-lg" name="auteur" id="editAuteur">
                     </div>
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">ISBN</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('isbn') ?></label>
                         <input type="text" class="form-control form-control-lg" name="isbn" id="editIsbn" >
                     </div>
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Catégorie</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('category') ?></label>
                         <select class="form-select form-select-lg" name="categorie" id="editCategorie" required>
                             <?php foreach ($categories as $category): ?>
                                 <option value="<?php echo $category['id_categorie']; ?>">
@@ -497,8 +501,8 @@ require_once '../includes/sidebar.php';
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary px-4">Enregistrer</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= __('save') ?></button>
                 </div>
             </form>
         </div>
@@ -510,7 +514,7 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Ajouter un exemplaire</h5>
+                <h5 class="modal-title text-gray-800"><?= __('add_copy') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/ajoute_exemplaire.php" method="POST" id="addCopyForm">
@@ -518,54 +522,54 @@ require_once '../includes/sidebar.php';
 
                 <div class="modal-body">
                     <p class="text-muted mb-4">
-                        Vous allez ajouter un nouvel exemplaire pour le livre :
+                            <?= __('add_copy_description') ?>
                         <strong id="copyBookTitle"></strong>
                     </p>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">Code barre</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('barcode') ?></label>
                         <input type="text" class="form-control form-control-lg" name="code_barre" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">Statut</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('status') ?></label>
                         <select name="statut" class="form-select form-select-lg" required>
-                            <option value="disponible" selected>Disponible</option>
-                            <option value="emprunte">Emprunté</option>
-                            <option value="reserve">Réservé</option>
-                            <option value="maintenance">Maintenance</option>
+                            <option value="disponible" selected><?= __('available') ?></option>
+                            <option value="emprunte"><?= __('borrowed') ?></option>
+                            <option value="reserve"><?= __('reserved') ?></option>
+                            <option value="maintenance"><?= __('maintenance') ?></option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">État</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('condition') ?></label>
                         <select name="etat" class="form-select form-select-lg" required>
-                            <option value="neuf">Neuf</option>
-                            <option value="bon" selected>Bon</option>
-                            <option value="moyen">Moyen</option>
-                            <option value="mauvais">Mauvais</option>
+                            <option value="neuf"><?= __('new') ?></option>
+                            <option value="bon" selected><?= __('good') ?></option>
+                            <option value="moyen"><?= __('average') ?></option>
+                            <option value="mauvais"><?= __('poor') ?></option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">Date d'acquisition</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('acquisition_date') ?></label>
                         <input type="date" class="form-control form-control-lg" name="date_acquisition" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">Date dernière maintenance</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('last_maintenance_date') ?></label>
                         <input type="date" class="form-control form-control-lg" name="date_derniere_maintenance" required>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-medium text-gray-800">Notes</label>
-                        <textarea class="form-control form-control-lg" name="notes" rows="3" placeholder="Ajouter des notes (optionnel)"></textarea>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('notes') ?></label>
+                        <textarea class="form-control form-control-lg" name="notes" rows="3" placeholder="<?= __('notes_placeholder') ?>"></textarea>
                     </div>
                 </div>
 
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary px-4">Ajouter</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-primary px-4"><?= __('add') ?></button>
                 </div>
             </form>
 

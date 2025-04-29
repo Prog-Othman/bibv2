@@ -14,6 +14,9 @@ Database::getInstance();
 
 global $connexion;
 
+require_once '../admin/lang.php';
+
+
 // require_once __DIR__ . '/../models/Book.php';
 
 
@@ -118,7 +121,7 @@ $categories = $connexion->query("SELECT * FROM n_categorie_livres ORDER BY nom_c
 
 
 // Définir le titre de la page
-$page_title = "Tableau de bord";
+$page_title = "Reservations";
 
 // Inclure le header et sidebar
 require_once '../includes/header.php';
@@ -130,19 +133,20 @@ require_once '../includes/sidebar.php';
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Ouvrages</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('books') ?></h1>
         </div>
         <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
-        Réservation effectuée avec succès !
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        <?= __('Réservation effectuée avec succès !') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= __('Fermer') ?>"></button>
     </div>
 <?php elseif (isset($_GET['error'])): ?>
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        Une erreur est survenue lors de la réservation. Veuillez réessayer.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        <?= __('Une erreur est survenue lors de la réservation. Veuillez réessayer.') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="<?= __('Fermer') ?>"></button>
     </div>
 <?php endif; ?>
+
 
        
 <!-- Search and Filter Section -->
@@ -150,20 +154,21 @@ require_once '../includes/sidebar.php';
             <div class="card-body">
             <form action="" method="GET" class="row g-3">
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="titre" placeholder="Titre de l'ouvrage" value="<?php echo htmlspecialchars($titre ?? ''); ?>">
+                    <input type="text" class="form-control" name="titre" placeholder="<?= __('title') ?>" value="<?php echo htmlspecialchars($titre ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="mot_cle" placeholder="Mot-clé" value="<?php echo htmlspecialchars($mot_cle ?? ''); ?>">
+                    <input type="text" class="form-control" name="mot_cle" placeholder="<?= __('keyword') ?>" value="<?php echo htmlspecialchars($mot_cle ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="resume" placeholder="Partie du résumé" value="<?php echo htmlspecialchars($resume ?? ''); ?>">
+                    <input type="text" class="form-control" name="resume" placeholder="<?= __('resume_part') ?>" value="<?php echo htmlspecialchars($resume ?? ''); ?>">
                 </div>
                 <div class="col-md-4">
-                    <input type="text" class="form-control" name="isbn" placeholder="ISBN" value="<?php echo htmlspecialchars($isbn ?? ''); ?>">
+                    <input type="text" class="form-control" name="isbn" placeholder="<?= __('isbn') ?>" value="<?php echo htmlspecialchars($isbn ?? ''); ?>">
                 </div>
+                
                 <div class="col-md-4">
                     <select class="form-select" name="category">
-                        <option value="0">Toutes les catégories</option>
+                        <option value="0"><?= __('all_categories') ?></option>
                         <?php foreach ($categories as $category): ?>
                             <option value="<?php echo $category['id_categorie']; ?>" <?php echo ($categoryFilter == $category['id_categorie']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($category['nom_categorie']); ?>
@@ -172,17 +177,18 @@ require_once '../includes/sidebar.php';
                     </select>
                 </div>
                 <div class="col-12 text-end">
-                    <button type="submit" class="btn btn-primary">Filtrer</button>
+                    <button type="submit" class="btn btn-primary"><?= __('filter') ?></button>
                 </div>
             </form>
             </div>
         </div>
 
+
         <!-- Books Table Card -->
         <div class="card border-0 shadow-sm rounded-3">
             <div class="card-header bg-white py-3">
                 <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gray-800">Liste Des Ouvrages</h5>
+                    <h5 class="mb-0 text-gray-800"><?= __('book_list') ?></h5>
                     <span class="badge bg-primary rounded-pill">
                         <?php echo $total; ?> livre<?php echo $total > 1 ? 's' : ''; ?>
                     </span>
@@ -193,12 +199,12 @@ require_once '../includes/sidebar.php';
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="px-4">Titre</th>
-                                <th>Auteur</th>
-                                <th>Catégorie</th>
-                                <th>ISBN</th>
-                                <th>Disponibilité</th>
-                                <th class="px-4">Actions</th>
+                                <th class="px-4"><?= __('title') ?></th>
+                                <th><?= __('author') ?></th>
+                                <th><?= __('category') ?></th>
+                                <th><?= __('isbn') ?></th>
+                                <th><?= __('available') ?></th>
+                                <th class="px-4"><?= __('actions') ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -235,7 +241,7 @@ require_once '../includes/sidebar.php';
                                                     data-bs-target="#reserver"
                                                     data-id="<?php echo $book['id_livre']; ?>">
                                                     <i class="bi bi-plus-circle"></i>
-                                                    <span>Réserver</span>
+                                                    <span><?= __('Reserver') ?></span>
                                                 </button>
                                             
                                             </div>
@@ -289,24 +295,25 @@ require_once '../includes/sidebar.php';
   <div class="modal-dialog">
     <form method="POST" action="./traitement/reserver.php" class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="reserverLabel">Réserver un ouvrage</h5>
+        <h5 class="modal-title" id="reserverLabel"><?= __('Réserver un ouvrage') ?></h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
       </div>
       <div class="modal-body">
-        <input type="text" name="id_livre" id="modal_id_livre">
+        <input type="hidden" name="id_livre" id="modal_id_livre">
 
         <div class="mb-3">
-          <label for="date_reservation" class="form-label">Date de souhaite</label>
+          <label for="date_reservation" class="form-label"><?= __('Date de souhait') ?></label>
           <input type="date" class="form-control" name="date_reservation" required>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-primary">Confirmer la réservation</button>
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-primary"><?= __('Confirmer la réservation') ?></button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= __('cancel') ?></button>
       </div>
     </form>
   </div>
 </div>
+
 
 
 

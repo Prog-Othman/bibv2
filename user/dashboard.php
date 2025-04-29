@@ -14,6 +14,9 @@ Database::getInstance();
 
 global $connexion;
 
+require_once '../admin/lang.php';
+
+
 // require_once __DIR__ . '/../models/Book.php';
 
 
@@ -84,65 +87,67 @@ require_once '../includes/sidebar.php';
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Mon tableau de bord</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('Mon_tableau_bord') ?></h1>
         </div>
+
 
         <!-- Stats Cards -->
         <div class="row g-4 mb-4">
-            <!-- Active Loans Card -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title text-primary mb-1">Emprunts actifs</h5>
-                                <h2 class="display-6 mb-0 fw-bold"><?php echo count($emprunts_actifs); ?></h2>
-                            </div>
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-3">
-                                <i class="bi bi-book text-primary fs-4"></i>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-3">Livres actuellement empruntés</p>
+    <!-- Active Loans Card -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title text-primary mb-1"><?= __('Emprunts actifs') ?></h5>
+                        <h2 class="display-6 mb-0 fw-bold"><?= count($emprunts_actifs); ?></h2>
+                    </div>
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="bi bi-book text-primary fs-4"></i>
                     </div>
                 </div>
-            </div>
-
-            <!-- Reservations Card -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title text-success mb-1">Réservations</h5>
-                                <h2 class="display-6 mb-0 fw-bold"><?php echo count($reservations); ?></h2>
-                            </div>
-                            <div class="rounded-circle bg-success bg-opacity-10 p-3">
-                                <i class="bi bi-bookmark text-success fs-4"></i>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-3">Réservations en attente</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notifications Card -->
-            <div class="col-12 col-sm-6 col-xl-4">
-                <div class="card h-100 border-0 shadow-sm rounded-3">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h5 class="card-title text-info mb-1">Notifications</h5>
-                                <h2 class="display-6 mb-0 fw-bold"><?php echo count($notifications); ?></h2>
-                            </div>
-                            <div class="rounded-circle bg-info bg-opacity-10 p-3">
-                                <i class="bi bi-bell text-info fs-4"></i>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-3">Notifications non lues</p>
-                    </div>
-                </div>
+                <p class="text-muted mb-3"><?= __('Livres actuellement empruntés') ?></p>
             </div>
         </div>
+    </div>
+
+    <!-- Reservations Card -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title text-success mb-1"><?= __('Réservations') ?></h5>
+                        <h2 class="display-6 mb-0 fw-bold"><?= count($reservations); ?></h2>
+                    </div>
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="bi bi-bookmark text-success fs-4"></i>
+                    </div>
+                </div>
+                <p class="text-muted mb-3"><?= __('Réservations en attente') ?></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Card -->
+    <div class="col-12 col-sm-6 col-xl-4">
+        <div class="card h-100 border-0 shadow-sm rounded-3">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title text-info mb-1"><?= __('Notifications') ?></h5>
+                        <h2 class="display-6 mb-0 fw-bold"><?= count($notifications); ?></h2>
+                    </div>
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                        <i class="bi bi-bell text-info fs-4"></i>
+                    </div>
+                </div>
+                <p class="text-muted mb-3"><?= __('Notifications non lues') ?></p>
+            </div>
+        </div>
+    </div>
+</div>
+
 
         <!-- Active Loans Section -->
         <div class="row g-4 mb-4">
@@ -157,20 +162,18 @@ require_once '../includes/sidebar.php';
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th class="px-4">Titre</th>
-                                        <th>Code barre</th>
-                                        <th>Date d'emprunt</th>
-                                        <th>Date de retour</th>
-                                        <th class="px-4">Statut</th>
-                                    </tr>
+                                <tr>
+                                    <th class="px-4"><?= __('Titre') ?></th>
+                                    <th><?= __('loan_date_header') ?></th>
+                                    <th><?= __('due_date_header') ?></th>
+                                    <th class="px-4"><?= __('status') ?></th>
+                                </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (!empty($emprunts_actifs)): ?>
                                         <?php foreach ($emprunts_actifs as $emprunt): ?>
                                             <tr>
                                                 <td class="px-4"><?php echo htmlspecialchars($emprunt['titre']); ?></td>
-                                                <td><?php echo htmlspecialchars($emprunt['code_barre']); ?></td>
                                                 <td><?php echo date('d/m/Y', strtotime($emprunt['date_emprunt'])); ?></td>
                                                 <td><?php echo date('d/m/Y', strtotime($emprunt['date_retour_prevue'])); ?></td>
                                                 <td class="px-4">
@@ -182,7 +185,7 @@ require_once '../includes/sidebar.php';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="5" class="text-center py-4 text-muted">Aucun emprunt en cours</td>
+                                            <td colspan="5" class="text-center py-4 text-muted"><?= __('no_loans_found') ?></td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -200,19 +203,19 @@ require_once '../includes/sidebar.php';
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white py-3">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0 text-gray-800">Mes réservations</h5>
+                            <h5 class="mb-0 text-gray-800"><?= __('Mes_reservations') ?></h5>
                         </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th class="px-4">Titre</th>
-                                        <th>Date de réservation</th>
-                                        <th>Date d'expiration</th>
-                                        <th class="px-4">Statut</th>
-                                    </tr>
+                                <tr>
+                                <th class="px-4"><?= __('title') ?></th>
+                                <th><?= __('Date_réservation') ?></th>
+                                <th><?= __('Date_expiration') ?></th>
+                                <th class="px-4"><?= __('status') ?></th>
+                            </tr>
                                 </thead>
                                 <tbody>
                                     <?php if (!empty($reservations)): ?>
@@ -230,7 +233,7 @@ require_once '../includes/sidebar.php';
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="4" class="text-center py-4 text-muted">Aucune réservation en cours</td>
+                                            <td colspan="4" class="text-center py-4 text-muted"><?= __('Aucune réservation en cours') ?></td>
                                         </tr>
                                     <?php endif; ?>
                                 </tbody>
@@ -269,7 +272,7 @@ require_once '../includes/sidebar.php';
                             </div>
                         <?php else: ?>
                             <div class="text-center py-4 text-muted">
-                                Aucune notification non lue
+                            <?= __('Aucune_notification_non_lue') ?>
                             </div>
                         <?php endif; ?>
                     </div>

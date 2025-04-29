@@ -8,6 +8,8 @@ require_once __DIR__ . '/../core/Router.php';
 $router = new Router();
 
 
+
+
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -91,25 +93,25 @@ $router = new Router();
                
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'books') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/books.php">
-                    <i class="bi bi-book"></i> Ouvrages
+                    <i class="bi bi-book"></i> <?= __('books') ?>
                 </a>
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'loans') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/loans.php">
-                    <i class="bi bi-clipboard-check"></i> Emprunts
+                    <i class="bi bi-clipboard-check"></i> <?= __('loans') ?>
                 </a>
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'categories') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/categories.php">
-                    <i class="bi bi-tags"></i> Catégories
+                    <i class="bi bi-tags"></i> <?= __('categories') ?>
                 </a>
 
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'auteur') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/author.php">
-                    <i class="bi bi-person-lines-fill"></i> Auteurs
+                    <i class="bi bi-person-lines-fill"></i> <?= __('authors') ?>
                 </a>
 
                 <a class="nav-link <?= $router->isActiveRoute('admin', 'irregularite') ? 'active' : '' ?>" 
                    href="<?= APP_URL ?>/admin/irregularite.php">
-                   <i class="bi bi-exclamation-triangle-fill"></i> Irrégularité
+                   <i class="bi bi-exclamation-triangle-fill"></i> <?= __('irregularites') ?>
                 </a>
             </div>
         <?php endif; ?>
@@ -118,7 +120,10 @@ $router = new Router();
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['user_role_id'] == 3): ?>
             <div class="nav flex-column mt-3">
                 <a class="nav-link" href="<?= APP_URL ?>/user/dashboard.php">
-                    <i class="bi bi-speedometer2"></i> Tableau de bord
+                    <i class="bi bi-speedometer2"></i> <?= __('Mon_tableau_bord') ?>
+                </a>
+                <a class="nav-link" href="<?= APP_URL ?>/user/reservation.php">
+                    <i class="bi bi-book"></i> <?= __('Mes_reservations') ?>
                 </a>
                 <!-- <a class="nav-link" href="<?php echo APP_URL; ?>/user/emprunts.php" onclick="return true;">
                     <i class="bi bi-book"></i> Mes emprunts
@@ -145,7 +150,7 @@ $router = new Router();
                             ?>
                         </div>
                         <small class="text-light-50">
-                            <?php echo isset($_SESSION['user']['user_role_id']) && $_SESSION['user']['user_role_id'] == 1 ? 'Administrateur' : 'Utilisateur'; ?>
+                            <?php echo isset($_SESSION['user']['user_role_id']) && $_SESSION['user']['user_role_id'] == 1 ? 'Administrateur' : 'Etudiant'; ?>
                         </small>
                     </div>
                 </div>

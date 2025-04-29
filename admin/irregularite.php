@@ -6,6 +6,9 @@ require_once '../config/Database.php';
 Database::getInstance();
 global $connexion;
 
+include './lang.php';
+
+
 // Date actuelle moins 2 mois
 $limite = date('Y-m-d', strtotime('-2 months'));
 
@@ -81,24 +84,26 @@ require_once '../includes/sidebar.php';
 <div class="content w-100 m-0 pt-5" id="content">
     <div class="container-fluid p-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des retards</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('late_management') ?></h1>
         </div>
+
 
         <?php if (isset($_GET['bloque'])): ?>
             <div class="alert alert-success">
-                L'utilisateur a été <?= $_GET['bloque'] === 'bloquer' ? 'bloqué' : 'débloqué' ?> avec succès.
+                <?= __('user') ?> <?= $_GET['bloque'] === 'bloquer' ? __('blocked') : __('unblocked') ?> <?= __('success') ?>.
             </div>
+
         <?php endif; ?>
 
         <!-- Formulaire de recherche -->
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-8">
-                <label class="form-label">Nom de l'adhérent</label>
-                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Ali" value="<?= htmlspecialchars($_GET['nom_adh'] ?? '') ?>">
+                <label class="form-label"><?= __('member_name_label') ?></label>
+                <input type="text" name="nom_adh" class="form-control" placeholder="<?= __('member_name_placeholder') ?>" value="<?= htmlspecialchars($_GET['nom_adh'] ?? '') ?>">
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">Rechercher</button>
-                <a href="retards.php" class="btn btn-secondary">Réinitialiser</a>
+                <button type="submit" class="btn btn-primary me-2"><?= __('search_button') ?></button>
+                <a href="retards.php" class="btn btn-secondary"><?= __('reset_button') ?></a>
             </div>
         </form>
 
@@ -106,13 +111,14 @@ require_once '../includes/sidebar.php';
         <?php if (count($retards) > 0): ?>
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">
-                    <tr>
-                        <th>Emprunteur</th>
-                        <th>Date prévue</th>
-                        <th>Exemplaire</th>
-                        <th>Statut</th>
-                        <th>Actions</th>
-                    </tr>
+                <tr>
+                    <th><?= __('borrower') ?></th>
+                    <th><?= __('expected_date') ?></th>
+                    <th><?= __('copy') ?></th>
+                    <th><?= __('status') ?></th>
+                    <th><?= __('actions') ?></th>
+                </tr>
+
                 </thead>
                 <tbody>
                     <?php foreach ($retards as $emprunt): ?>
@@ -124,14 +130,15 @@ require_once '../includes/sidebar.php';
                             <td>
                                 <?php if (!empty($emprunt['id_utilisateur'])): ?>
                                     <form method="POST" action="traitement/bloquer_utilisateur.php"
-                                        onsubmit="return confirm('Voulez-vous vraiment <?= intval($emprunt['user_bib_status']) ? 'débloquer' : 'bloquer' ?> cet utilisateur ?');"
+                                        onsubmit="return confirm('<?= intval($emprunt['user_bib_status']) ? __('confirm_unblock') : __('confirm_block') ?>');"
                                         style="display: inline;">
                                         <input type="hidden" name="user_id" value="<?= $emprunt['id_utilisateur'] ?>">
                                         <input type="hidden" name="action" value="<?= intval($emprunt['user_bib_status']) ? 'debloquer' : 'bloquer' ?>">
                                         <button type="submit" class="btn btn-<?= intval($emprunt['user_bib_status']) ? 'success' : 'danger' ?> btn-sm">
-                                            <?= intval($emprunt['user_bib_status']) ? 'Débloquer' : 'Bloquer' ?>
+                                            <?= intval($emprunt['user_bib_status']) ? __('unblock') : __('block') ?>
                                         </button>
                                     </form>
+
                                 <?php else: ?>
                                     <span class="text-muted">Externe</span>
                                 <?php endif; ?>

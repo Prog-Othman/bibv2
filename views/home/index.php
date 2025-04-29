@@ -1,19 +1,42 @@
+
+<?php 
+
+$lang = 'fr';
+
+if (isset($_GET['lang'])) {
+    $lang = $_GET['lang'];
+    $_SESSION['lang'] = $lang;
+} elseif (isset($_SESSION['lang'])) {
+    $lang = $_SESSION['lang'];
+}
+
+$langFile = ROOT_PATH . "/lang/{$lang}.php";
+
+if (!file_exists($langFile)) {
+    $langFile = ROOT_PATH . "/lang/fr.php";
+}
+
+$translations = include($langFile);
+
+
+?>
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="jumbotron bg-light p-5 rounded d-flex align-items-center">
             <div class="col-md-8">
-                <h1 class="display-4 text-dark">Bienvenue Au Système De Gestion De Bibliothèque</h1>
-                <p class="lead text-dark">Découvrez notre collection de livres et profitez de nos services de prêt.</p>
+                <h1 class="display-4 text-dark"><?php echo $translations['Bienvenue'];?></h1>
+                <p class="lead text-dark"><?php echo $translations['Découvrez notre collection de livres et profitez de nos services de prêt.'];?></p>
                 <hr class="my-4 text-dark">
-                <p class="text-dark">Vous pouvez rechercher des livres, gérer vos emprunts et découvrir nos nouveautés.</p>
-                <p class="text-dark">Veuillez vous connecter dans votre espace</p>
+                <p class="text-dark"><?php echo $translations['Vous pouvez rechercher des livres, gérer vos emprunts et découvrir nos nouveautés.'];?></p>
+                <p class="text-dark"><?php echo $translations['Veuillez vous connecter dans votre espace'];?></p>
             </div>
             <div class="col-md-4 text-center">
-                <img src="public/images/bibl.png" alt="Bibliothèque" class="img-fluid rounded shadow">
+                <img src="public/images/bibl.png" alt="<?php echo $translations['Bibliothèque'];?>" class="img-fluid rounded shadow">
             </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- <div class="row">

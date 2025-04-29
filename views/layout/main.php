@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -21,23 +22,34 @@
                 <i class="fas fa-book me-1"></i>Catalogue
             </a> -->
         </li>
-        <?php if (isset($_SESSION['user'])): ?>
-            <li class="nav-item me-3">
-                <a class="nav-link" href="<?php echo APP_URL; ?>/loans">
-                    <i class="fas fa-book-reader me-1"></i>Mes emprunts
-                </a>
-            </li>
-            <?php if ($_SESSION['user']['role'] === 'admin' || $_SESSION['user']['role'] === 'librarian'): ?>
+        <?php 
+        if (isset($_SESSION['user'])): ?>
+            
+            <?php if ($_SESSION['user']['user_role_id'] === '1' ): ?>
                 <li class="nav-item dropdown me-3">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-cog me-1"></i>Administration
                     </a>
                     <ul class="dropdown-menu">
                         <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/books">Gestion des livres</a></li>
-                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/users">Gestion des utilisateurs</a></li>
                         <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/loans">Gestion des emprunts</a></li>
                         <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/categories">Gestion des catégories</a></li>
-                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/reports">Rapports</a></li>
+                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/author">Gestion des Auteurs</a></li>
+                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/admin/irregularite">irregularites</a></li>
+                    </ul>
+                </li>
+            <?php endif; ?>
+
+            <!-- si il est etudiant  -->
+            <?php if ($_SESSION['user']['user_role_id'] === '3' ): ?>
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarAdmin" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-cog me-1"></i>Administration
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/user/dashboard">tableau de bord</a></li>
+                        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/user/reservation">Reservation</a></li>
+                       
                     </ul>
                 </li>
             <?php endif; ?>
@@ -45,21 +57,31 @@
     </ul>
 
     <ul class="navbar-nav flex-row">
+   <li class="nav-item dropdown me-2">
+    <a class="nav-link dropdown-toggle" href="#" id="navbarLang" role="button" data-bs-toggle="dropdown">
+        🌐 <?php echo strtoupper($_SESSION['lang'] ?? 'FR'); ?>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>?lang=fr">Français</a></li>
+        <li><a class="dropdown-item" href="<?php echo APP_URL; ?>?lang=en">English</a></li>
+    </ul>
+</li>
+
         <?php if (isset($_SESSION['user'])): ?>
+
             <li class="nav-item dropdown me-2">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarUser" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user me-1"></i><?php echo isset($_SESSION['user']['login']) ? htmlspecialchars($_SESSION['user']['login']) : 'User'; ?>
+                    <i class="fas fa-user me-1"></i>
+                    <?php echo isset($_SESSION['user']['nom']) ? htmlspecialchars($_SESSION['user']['nom']) : 'User'; ?>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/profile">Mon profil</a></li>
-                    <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="<?php echo APP_URL; ?>/auth/logout">Déconnexion</a></li>
                 </ul>
             </li>
         <?php else: ?>
             <li class="nav-item me-2">
-                <a class="nav-link" href="<?php echo APP_URL; ?>/auth/Connexion.php">Connexion</a>
-            </li>
+            <a class="nav-link" href="<?php echo APP_URL; ?>/auth/Connexion.php?lang=<?php echo $_SESSION['lang'] ?? 'fr'; ?>">Connexion</a>
+        </li>
         <?php endif; ?>
     </ul>
 </div>

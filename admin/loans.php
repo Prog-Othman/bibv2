@@ -4,6 +4,7 @@ require_once '../config/config.php';
 
 
 require_once '../config/Database.php';
+include './lang.php';
 
 
 Database::getInstance();
@@ -208,6 +209,7 @@ $emprunts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Définir le titre de la page
 $page_title = "Gestion des emprunts";
 
+
 // Inclure le header et le sidebar
 require_once '../includes/header.php';
 require_once '../includes/sidebar.php';
@@ -218,10 +220,10 @@ require_once '../includes/sidebar.php';
     <div class="container-fluid p-4">
         <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0 text-gray-800">Gestion des emprunts</h1>
+            <h1 class="h3 mb-0 text-gray-800"><?= __('loans_management') ?></h1>
             <div class="d-flex gap-2">
                 <!-- Bouton pour rediriger vers ajouter_emprunt.php -->
-                <a href="ajouter_emprunt.php" class="btn btn-primary">Ajouter un emprunt</a>
+                <a href="ajouter_emprunt.php" class="btn btn-primary"><?= __('add_loan') ?></a>
             </div>
         </div>
 
@@ -233,14 +235,14 @@ require_once '../includes/sidebar.php';
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="card-title text-primary mb-1">Total</h5>
+                                <h5 class="card-title text-primary mb-1"><?= __('total_title') ?></h5>
                                 <h2 class="display-6 mb-0 fw-bold"><?php echo $stats['total']; ?></h2>
                             </div>
                             <div class="rounded-circle bg-primary bg-opacity-10 p-3">
                                 <i class="bi bi-book text-primary fs-4"></i>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Emprunts au total</p>
+                        <p class="text-muted mb-0"><?= __('total_description') ?></p>
                     </div>
                 </div>
             </div>
@@ -251,14 +253,14 @@ require_once '../includes/sidebar.php';
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="card-title text-success mb-1">En cours</h5>
+                                <h5 class="card-title text-success mb-1"><?= __('active_title') ?></h5>
                                 <h2 class="display-6 mb-0 fw-bold"><?php echo $stats['actif']; ?></h2>
                             </div>
                             <div class="rounded-circle bg-success bg-opacity-10 p-3">
                                 <i class="bi bi-clock-history text-success fs-4"></i>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Emprunts actifs</p>
+                        <p class="text-muted mb-0"<?= __('active_description') ?></p>
                     </div>
                 </div>
             </div>
@@ -269,14 +271,14 @@ require_once '../includes/sidebar.php';
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="card-title text-danger mb-1">Retards</h5>
+                                <h5 class="card-title text-danger mb-1"><?= __('overdue_title') ?></h5>
                                 <h2 class="display-6 mb-0 fw-bold"><?php echo $stats['en_retard']; ?></h2>
                             </div>
                             <div class="rounded-circle bg-danger bg-opacity-10 p-3">
                                 <i class="bi bi-exclamation-circle text-danger fs-4"></i>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Emprunts en retard</p>
+                        <p class="text-muted mb-0"><?= __('overdue_description') ?></p>
                     </div>
                 </div>
             </div>
@@ -287,14 +289,14 @@ require_once '../includes/sidebar.php';
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div>
-                                <h5 class="card-title text-info mb-1">Terminés</h5>
+                                <h5 class="card-title text-info mb-1"><?= __('completed_title') ?></h5>
                                 <h2 class="display-6 mb-0 fw-bold"><?php echo $stats['termine']; ?></h2>
                             </div>
                             <div class="rounded-circle bg-info bg-opacity-10 p-3">
                                 <i class="bi bi-check-circle text-info fs-4"></i>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">Emprunts terminés</p>
+                        <p class="text-muted mb-0"><?= __('completed_description') ?></p>
                     </div>
                 </div>
             </div>
@@ -479,36 +481,37 @@ require_once '../includes/sidebar.php';
         <!-- Formulaire de recherche -->
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-3">
-                <label class="form-label">Date début</label>
+                <label class="form-label"><?= __('start_date_label'); ?> </label>
                 <input type="date" name="date_debut" class="form-control" value="<?= htmlspecialchars($date_debut) ?>">
             </div>
             <div class="col-md-3">
-                <label class="form-label">Date fin</label>
+                <label class="form-label"><?= __('end_date_label'); ?></label>
                 <input type="date" name="date_fin" class="form-control" value="<?= htmlspecialchars($date_fin) ?>">
             </div>
-            <div class="col-md-4">
-                <label class="form-label">Nom de l'adhérent</label>
-                <input type="text" name="nom_adh" class="form-control" placeholder="Ex : Ali" value="<?= htmlspecialchars($nom_adh) ?>">
+            <div class="col-md-3">
+                <label class="form-label"><?= __('member_name_label'); ?></label>
+                <input type="text" name="nom_adh" class="form-control" placeholder="<?= __('member_name_placeholder'); ?>" value="<?= htmlspecialchars($nom_adh) ?>">
             </div>
             <div class="col-md-2 d-flex align-items-end">
-                <button type="submit" class="btn btn-primary me-2">Rechercher</button>
-                <a href="loans.php" class="btn btn-secondary">Réinitialiser</a>
+                <button type="submit" class="btn btn-primary me-2"><?= __('search_button') ?></button>
+                <a href="loans.php" class="btn btn-secondary"><?= __('reset_button') ?></a>
             </div>
         </form>
+
 
         <!-- Résultat -->
         <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
             <th>#</th>
-            <th>Nom Adhérent</th>
-            <th>Livre</th>
-            <th>Date Emprunt</th>
-            <th>Retour Prévu</th>
-            <th>Retour Effectif</th>
-            <th>Statut</th>
-            <th>Notes</th>
-            <th>Actions</th> 
+            <th><?= __('member_name_label') ?></th>
+            <th><?= __('book') ?></th>
+            <th><?= __('loan_date_header') ?> </th>
+            <th><?= __('due_date_header') ?></th>
+            <th><?= __('return_date_header') ?></th>
+            <th><?= __('status') ?></th>
+            <th><?= __('remark_header') ?></th>
+            <th><?= __('actions') ?></th> 
         </tr>
     </thead>
     <tbody>
@@ -536,7 +539,7 @@ require_once '../includes/sidebar.php';
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
-                <td colspan="8" class="text-center text-muted">Aucun emprunt trouvé.</td>
+                <td colspan="8" class="text-center text-muted"><?= __('no_loans_found') ?></td>
             </tr>
         <?php endif; ?>
     </tbody>
@@ -687,29 +690,29 @@ require_once '../includes/sidebar.php';
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title text-gray-800">Retour d'emprunt</h5>
+                <h5 class="modal-title text-gray-800"><?= __('return_loan_title') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form action="traitement/emprunt.php" method="POST" id="returnForm">
                 <input type="hidden" name="id" id="returnId">
                 <div class="modal-body">
-                    <p class="text-muted mb-4">Confirmez-vous le retour du livre : <strong id="returnBookTitle"></strong> ?</p>
+                    <p class="text-muted mb-4"><?= __('confirm_return_message') ?> <strong id="returnBookTitle"></strong> ?</p>
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">État du livre</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('book_condition_label') ?></label>
                         <select class="form-select form-select-lg" name="etat" required>
-                            <option value="rendu">rendu</option>
-                            <option value="en_retard">en_retard</option>
-                            <option value="perdu">Perdu</option>
+                            <option value="rendu"><?= __('returned_option') ?></option>
+                            <option value="en_retard"><?= __('overdue_option') ?></option>
+                            <option value="perdu"><?= __('lost_option') ?></option>
                         </select>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label small fw-medium text-gray-800">Commentaire</label>
+                        <label class="form-label small fw-medium text-gray-800"><?= __('comment_label') ?></label>
                         <textarea class="form-control" name="commentaire" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success px-4">Confirmer le retour</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"><?= __('cancel') ?></button>
+                    <button type="submit" class="btn btn-success px-4"><?= __('save') ?></button>
                 </div>
             </form>
         </div>

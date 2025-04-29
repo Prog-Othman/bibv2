@@ -48,17 +48,26 @@ if (!isset($_SESSION)) {
 <body>
     <div class="d-flex">
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary-custom">
-        <div class="container-fluid px-3 px-lg-4">
-            <div class="d-flex align-items-center w-100">
-                <button class="btn border border-0 toggle-sidebar me-3" id="sidebarToggle">
-                    <i class="bi bi-list"></i>
-                </button>
-                <div class="navbar-brand m-0">
-                    <img src="<?php echo APP_URL; ?>/public/images/SupMTI - W Logo.png" alt="Logo" height="40">
-                </div>
+    <div class="container-fluid px-3 px-lg-4">
+        <div class="d-flex align-items-center w-100">
+            <button class="btn border border-0 toggle-sidebar me-3" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+
+            <div class="navbar-brand m-0 me-auto">
+                <img src="<?php echo APP_URL; ?>/public/images/SupMTI - W Logo.png" alt="Logo" height="40">
+            </div>
+
+            <!-- Boutons langue à droite -->
+            <div class="d-flex align-items-center ms-auto">
+                <a href="?lang=fr" class="text-white me-2">Français</a>
+                |
+                <a href="?lang=en" class="text-white ms-2">English</a>
             </div>
         </div>
-    </nav>
+    </div>
+</nav>
+
     <script>
 document.addEventListener('DOMContentLoaded', function() {
     const sidebar = document.getElementById('sidebar');
