@@ -252,7 +252,10 @@ require_once '../includes/sidebar.php';
                         </div>
                     </div>
                     <div class="card-body p-0">
-                        <?php if (!empty($notifications)): ?>
+                        <?php
+
+ 
+                        if ($notifications): ?>
                             <div class="list-group list-group-flush">
                                 <?php foreach ($notifications as $notification): ?>
                                     <div class="list-group-item px-4 py-3">

@@ -209,7 +209,7 @@ require_once '../includes/sidebar.php';
                         </thead>
                         <tbody>
                             <?php if (!empty($books)): ?>
-                                <?php foreach ($books as $book): ?>
+                                <?php foreach ($books as $book): ?> 
                                     <tr>
                                         <td class="px-4 fw-medium">
                                             <?php echo htmlspecialchars($book['titre']); ?>
@@ -236,14 +236,15 @@ require_once '../includes/sidebar.php';
                                         </td>
                                         <td class="px-4">
                                             <div class="d-flex gap-2">
-                                                <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#reserver"
-                                                    data-id="<?php echo $book['id_livre']; ?>">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                    <span><?= __('Reserver') ?></span>
-                                                </button>
-                                            
+                                                <?php if ($available > 0): ?>
+                                                    <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#reserver"
+                                                        data-id="<?php echo $book['id_livre']; ?>">
+                                                        <i class="bi bi-plus-circle"></i>
+                                                        <span><?= __('Reserver') ?></span>
+                                                    </button>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                     </tr>

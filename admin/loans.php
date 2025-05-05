@@ -525,7 +525,7 @@ require_once '../includes/sidebar.php';
                     <td><?= date('d/m/Y', strtotime($emp['date_emprunt'])) ?></td>
                     <td><?= date('d/m/Y', strtotime($emp['date_retour_prevue'])) ?></td>
                     <td>
-                        <?= $emp['date_retour_effective'] ? date('d/m/Y', strtotime($emp['date_retour_effective'])) : '—' ?>
+                        <?= !empty($emp['date_retour_effective']) ? date('d/m/Y', strtotime($emp['date_retour_effective'])) : '—' ?>
                     </td>
                     <td><?= ucfirst($emp['statut']) ?></td>
                     <td><?= htmlspecialchars($emp['notes'] ?? '') ?></td>

@@ -60,6 +60,28 @@ if (!isset($_SESSION)) {
 
             <!-- Boutons langue à droite -->
             <div class="d-flex align-items-center ms-auto">
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php
+                    $user_id = $_SESSION['user_id'];
+                    $unread_count = 0;
+                    $query = "SELECT COUNT(*) as count FROM n_notifications WHERE id_utilisateur = ? AND est_lu = 0";
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+                    if ($row = $result->fetch_assoc()) {
+                        $unread_count = $row['count'];
+                    }
+                    ?>
+                    <a href="<?php echo APP_URL; ?>/notifications.php" class="text-white me-3 position-relative">
+                        <i class="bi bi-bell"></i>
+                        <?php if ($unread_count > 0): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                <?php echo $unread_count; ?>
+                            </span>
+                        <?php endif; ?>
+                    </a>
+                <?php endif; ?>
                 <a href="?lang=fr" class="text-white me-2">Français</a>
                 |
                 <a href="?lang=en" class="text-white ms-2">English</a>

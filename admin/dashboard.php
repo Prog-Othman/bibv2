@@ -188,7 +188,7 @@ require_once '../includes/sidebar.php';
                                             <tr>
                                                 <td class="px-4"><?php echo htmlspecialchars($loan['titre']); ?></td>
                                                 <td><?php echo date('d/m/Y', strtotime($loan['date_emprunt'])); ?></td>
-                                                <td><?php echo date('d/m/Y', strtotime($loan['date_retour'])); ?></td>
+                                                <td><?php echo date('d/m/Y', strtotime($loan['date_retour_prevue'])); ?></td>
                                                 <td class="px-4">
                                                     <span class="badge <?php echo $statusClass; ?> rounded-pill">
                                                         <?php echo ucfirst($loan['statut']); ?>

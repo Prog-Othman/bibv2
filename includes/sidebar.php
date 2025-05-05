@@ -113,6 +113,10 @@ $router = new Router();
                    href="<?= APP_URL ?>/admin/irregularite.php">
                    <i class="bi bi-exclamation-triangle-fill"></i> <?= __('irregularites') ?>
                 </a>
+                <a class="nav-link <?= $router->isActiveRoute('admin', 'reservation') ? 'active' : '' ?>" 
+                   href="<?= APP_URL ?>/admin/reservation.php">
+                   <i class="bi bi-calendar-check"></i> <?= __('reservations') ?>
+                </a>
             </div>
         <?php endif; ?>
 
