@@ -125,4 +125,4 @@ For support, email: `support@supmti.com`
 
 ---
 
-Would you like me to add anything specific for your SUP-MTI project? 😊
+ SUP-MTI project 😊
